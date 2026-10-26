@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Ambient Video for YouTube",
+  "version": "1.0.0",
+  "description": "Ambilight glow around the YouTube player, read straight from the video. Works in full screen.",
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
+  "permissions": ["storage"],
+  "action": { "default_popup": "popup.html", "default_title": "Ambient Video" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://m.youtube.com/*", "https://youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

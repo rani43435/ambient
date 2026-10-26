@@ -1,0 +1,29 @@
+/* Ambient Video: the glow lives inside YouTube's own player, so it works the same
+   on the watch page, in theater mode and in full screen. */
+#movie_player.av-on { background: #000 !important; }
+#movie_player.av-on video.html5-main-video {
+  transform: scale(var(--av-scale, 0.8)) !important;
+  transform-origin: center center !important;
+  border-radius: 6px;
+}
+#av-glow {
+  position: absolute; left: 0; top: 0; pointer-events: none; display: none;
+  -webkit-mask-image: radial-gradient(closest-side, #000 68%, transparent);
+  mask-image: radial-gradient(closest-side, #000 68%, transparent);
+}
+#movie_player.av-on #av-glow { display: block; }
+
+/* Button in YouTube's control bar + small panel (both work in full screen) */
+.av-btn.ytp-button { display: inline-flex !important; align-items: center; justify-content: center; vertical-align: top; }
+.av-btn svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+#movie_player.av-on .av-btn svg { stroke: #7FE3B0; }
+#av-panel {
+  position: absolute; right: 12px; bottom: 60px; z-index: 70; display: none;
+  flex-direction: column; gap: 10px; padding: 12px 14px; min-width: 220px;
+  background: rgba(20,21,24,.92); border: 1px solid #34373D; border-radius: 14px;
+  color: #F2F2EF; font: 500 13px/1.2 Roboto, system-ui, sans-serif;
+}
+#av-panel.open { display: flex; }
+#av-panel label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#av-panel input[type=range] { width: 120px; accent-color: #7FE3B0; }
+#av-panel input[type=checkbox] { accent-color: #7FE3B0; width: 16px; height: 16px; }
