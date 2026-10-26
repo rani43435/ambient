@@ -41,10 +41,33 @@ HOST=""
 [ -r "$CONF/host" ] && HOST=$(cat "$CONF/host")
 HG="$HOME/Library/Application Support/HeadGestureControl-TVBridge/tv-state.json"
 [ -z "$HOST" ] && [ -r "$HG" ] && HOST=$(sed -n 's/.*"host": *"\([^"]*\)".*/\1/p' "$HG" | head -1)
+
+# Network facts for the log (to see why the Pocket TV can't be reached).
+for IF in en0 en1; do MYIP=$(ipconfig getifaddr $IF 2>/dev/null); [ -n "$MYIP" ] && break; done
+log "mac ip: $MYIP ($IF)  gw: $(route -n get default 2>/dev/null | awk '/gateway/{print $2}')  wifi: $(networksetup -getairportnetwork $IF 2>/dev/null)"
+[ -n "$HOST" ] && log "route $HOST: $(route -n get "$HOST" 2>&1 | awk '/interface|gateway/' | tr '\n' ' ')  ping: $(ping -c1 -t2 "$HOST" 2>&1 | grep -E 'bytes from|timeout|No route|Unreachable|loss' | head -2 | tr '\n' ' ')"
+
+# Look for the Pocket TV by itself: wireless-debugging announcement, then anything with port 5555 open nearby.
+FOUND=""
+MD=$("$ADB" mdns services 2>&1); log "mdns: $(echo "$MD" | tr '\n' ' ' | cut -c1-400)"
+for t in $(echo "$MD" | awk '/_adb-tls-connect|_adb\._tcp/ {print $NF}'); do
+  o=$("$ADB" connect "$t" 2>&1); log "mdns connect $t: $o"
+  echo "$o" | grep -q "connected to" && { FOUND="$t"; break; }
+done
+if [ -z "$FOUND" ]; then
+  nets=""; [ -n "$MYIP" ] && nets="${MYIP%.*}"; [ -n "$HOST" ] && [ "${HOST%.*}" != "$nets" ] && nets="$nets ${HOST%.*}"
+  for n in $nets; do
+    hits=$(for i in $(seq 1 254); do echo "$n.$i"; done | xargs -P 100 -I{} sh -c 'nc -z -G 1 -w 1 {} 5555 >/dev/null 2>&1 && echo {}')
+    log "scan $n.0/24 port 5555: $(echo $hits)"
+    h=$(echo "$hits" | grep -v "^$MYIP$" | head -1); [ -n "$h" ] && { FOUND="$h:5555"; break; }
+  done
+fi
+if [ -n "$FOUND" ]; then log "found: $FOUND"; HOST="${FOUND%:*}"; else
 HOST=$(ask "IP address of the Pocket TV (Settings → Network & Internet → your Wi-Fi):" "$HOST")
+fi
 [ -z "$HOST" ] && exit 0
 echo "$HOST" >"$CONF/host"
-TARGET="$HOST:5555"
+TARGET="${FOUND:-$HOST:5555}"
 connect_ok() {
   out=$("$ADB" connect "$TARGET" 2>&1); log "connect $TARGET: $out"
   echo "$out" | grep -q "connected to" || return 1
@@ -57,7 +80,7 @@ connect_ok() {
   return 1
 }
 while ! connect_ok; do
-  r=$(choose "Could not reach the Pocket TV at $HOST.\n\nCheck that it is on and on the same Wi-Fi, and that Settings → System → Developer options → USB debugging is ON.\n\nThen press Retry." "Pairing code" "Retry")
+  r=$(choose "Could not reach the Pocket TV at $HOST.\n\nCheck that it is on and on the same Wi-Fi, and that Settings → System → Developer options → USB debugging is ON.\n\nOn the Mac: System Settings → Privacy & Security → Local Network → 'Install Ambient on Pocket TV' ON.\n\nThen press Retry." "Pairing code" "Retry")
   if [ "$r" = "Pairing code" ]; then
     pp=$(ask "Developer options → Wireless debugging → Pair device with pairing code.\nIP address and port shown there (e.g. $HOST:37123):" "$HOST:"); [ -z "$pp" ] && exit 0
     code=$(ask "The 6-digit Wi-Fi pairing code:" ""); [ -z "$code" ] && exit 0
