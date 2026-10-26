@@ -109,6 +109,7 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 String scheme = r.getUrl().getScheme();
                 String u = r.getUrl().toString();
+                if (r.isForMainFrame()) { String t = toYtTv(u); if (!t.equals(u)) { go(t); return true; } }
                 // Switch user agent when going into or out of the YouTube TV interface.
                 if (r.isForMainFrame() && ("http".equals(scheme) || "https".equals(scheme) || "file".equals(scheme))) {
                     String want = isYtTv(u) ? TV_UA : defaultUA;
@@ -168,6 +169,15 @@ public class MainActivity extends Activity {
         else open(getIntent());
     }
 
+    /** youtube.com/watch?v=ID, youtu.be/ID, shorts… → the same video in the YouTube TV interface. */
+    static String toYtTv(String url) {
+        if (url == null || isYtTv(url)) return url;
+        Matcher h = Pattern.compile("^https?://(www\\.|m\\.)?(youtube\\.com|youtu\\.be)(/|$)").matcher(url);
+        if (!h.find()) return url;
+        Matcher m = Pattern.compile("(?:v=|youtu\\.be/|shorts/|embed/|live/)([\\w-]{11})").matcher(url);
+        return m.find() ? "https://www.youtube.com/tv#/watch?v=" + m.group(1) : "https://www.youtube.com/tv";
+    }
+
     /** Open a link handed to the app (shared text or a YouTube link), else the home screen. */
     private void open(Intent i) {
         String url = null;
@@ -181,7 +191,7 @@ public class MainActivity extends Activity {
                 }
             }
         }
-        go(url != null ? url : HOME);
+        go(url != null ? toYtTv(url) : HOME);
     }
 
     @Override
@@ -212,7 +222,7 @@ public class MainActivity extends Activity {
             case KeyEvent.KEYCODE_SETTINGS:
             case KeyEvent.KEYCODE_INFO:
                 // Glow settings panel on the video
-                web.evaluateJavascript("window.__ambientPanel && window.__ambientPanel()", null);
+                showPanel();
                 return true;
             case KeyEvent.KEYCODE_PROG_RED:
                 web.evaluateJavascript("window.__ambientToggle && window.__ambientToggle()", null);
@@ -258,6 +268,89 @@ public class MainActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
     @Override protected void onDestroy() { web.destroy(); super.onDestroy(); }
 
+    private android.app.Dialog panel;
+
+    /** Glow settings as a native window: works with the remote on every site (YouTube TV too). */
+    private void showPanel() {
+        if (panel != null && panel.isShowing()) { panel.dismiss(); return; }
+        org.json.JSONObject c;
+        try { c = new org.json.JSONObject(prefs.getString("cfg", "{}")); } catch (Exception e) { c = new org.json.JSONObject(); }
+        final org.json.JSONObject cfg = c;
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.LinearLayout box = new android.widget.LinearLayout(this);
+        box.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (22 * d);
+        box.setPadding(pad, pad, pad, pad);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setColor(0xF0141518); bg.setCornerRadius(18 * d); bg.setStroke((int) d, 0xFF34373D);
+        box.setBackground(bg);
+
+        android.widget.CheckBox on = new android.widget.CheckBox(this);
+        on.setText("Ambient glow");
+        on.setTextColor(0xFFF2F2EF); on.setTextSize(18);
+        on.setButtonTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
+        on.setChecked(cfg.optBoolean("on", true));
+        box.addView(on);
+        android.widget.SeekBar amount = slider(box, "Strength", 0, 100, cfg.optInt("amount", 100), d);
+        android.widget.SeekBar size = slider(box, "Video size", 50, 100, cfg.optInt("size", 80), d);
+        android.widget.TextView hint = new android.widget.TextView(this);
+        hint.setText("Left / right to change · Back to close");
+        hint.setTextColor(0xFF9A9DA4); hint.setTextSize(13);
+        hint.setPadding(0, (int) (14 * d), 0, 0);
+        box.addView(hint);
+
+        Runnable push = () -> {
+            try {
+                cfg.put("on", on.isChecked());
+                cfg.put("amount", amount.getProgress());
+                cfg.put("size", 50 + size.getProgress());
+            } catch (Exception ignored) {}
+            prefs.edit().putString("cfg", cfg.toString()).apply();
+            web.evaluateJavascript("window.__ambientReload && window.__ambientReload()", null);
+        };
+        on.setOnCheckedChangeListener((b, v) -> push.run());
+        android.widget.SeekBar.OnSeekBarChangeListener l = new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean u) { push.run(); }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {}
+            public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        };
+        amount.setOnSeekBarChangeListener(l);
+        size.setOnSeekBarChangeListener(l);
+
+        panel = new android.app.Dialog(this);
+        panel.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        panel.setContentView(box);
+        android.view.Window w = panel.getWindow();
+        if (w != null) {
+            w.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+            w.setLayout((int) (380 * d), ViewGroup.LayoutParams.WRAP_CONTENT);
+            w.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+            WindowManager.LayoutParams a = w.getAttributes();
+            a.x = (int) (24 * d); a.y = (int) (24 * d); a.dimAmount = 0f;
+            w.setAttributes(a);
+            w.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
+        panel.setOnDismissListener((x) -> immersive());
+        panel.show();
+        amount.requestFocus();
+    }
+
+    private android.widget.SeekBar slider(android.widget.LinearLayout box, String label, int min, int max, int value, float d) {
+        android.widget.TextView t = new android.widget.TextView(this);
+        t.setText(label); t.setTextColor(0xFFF2F2EF); t.setTextSize(16);
+        t.setPadding(0, (int) (16 * d), 0, (int) (4 * d));
+        box.addView(t);
+        android.widget.SeekBar s = new android.widget.SeekBar(this);
+        s.setMax(max - min);
+        s.setKeyProgressIncrement(5);
+        s.setProgress(Math.max(0, Math.min(max - min, value - min)));
+        s.setProgressTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
+        s.setThumbTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
+        s.setFocusable(true);
+        box.addView(s, new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (40 * d)));
+        return s;
+    }
+
     private String readAsset(String name) {
         try (InputStream in = getAssets().open(name)) {
             ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -273,5 +366,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void set(String json) {
             if (json != null && json.length() < 500) prefs.edit().putString("cfg", json).apply();
         }
+        @JavascriptInterface public void panel() { runOnUiThread(MainActivity.this::showPanel); }
     }
 }

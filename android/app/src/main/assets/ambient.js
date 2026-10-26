@@ -170,15 +170,35 @@
     row('Strength', el('input', { type: 'range', min: 0, max: 100, step: 5, 'data-k': 'amount' })),
     row('Video size', el('input', { type: 'range', min: 50, max: 100, step: 5, 'data-k': 'size' })));
   const stop = (e) => e.stopPropagation();
-  ['click', 'mousedown', 'pointerdown', 'touchstart', 'dblclick'].forEach((ev) => { btn.addEventListener(ev, stop); panel.addEventListener(ev, stop); });
+  ['click', 'mousedown', 'pointerdown', 'touchstart', 'dblclick'].forEach((ev) => panel.addEventListener(ev, stop));
   panel.addEventListener('keydown', (e) => {
     e.stopPropagation(); // keep the site from seeking while the panel has focus
     if (e.key === 'Escape' || e.key === 'Backspace') { panel.classList.remove('open'); btn.focus(); e.preventDefault(); }
   });
-  btn.addEventListener('click', () => {
+  // In the app the settings open as a native window (works with the remote on any site);
+  // in a plain browser the small HTML panel is used.
+  function openPanel() {
+    if (bridge && bridge.panel) { bridge.panel(); return; }
     panel.classList.toggle('open');
     if (panel.classList.contains('open')) panel.querySelector('input').focus();
-  });
+  }
+  btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openPanel(); } });
+  // Some players (YouTube TV) swallow mouse and touch events before they reach the
+  // button, so catch a press on the button's area first, at the window level.
+  let lastPress = 0;
+  const hitBtn = (e) => {
+    if (!btn.isConnected || !btn.classList.contains('show')) return false;
+    const t = e.touches ? e.touches[0] : e;
+    if (!t || t.clientX == null) return false;
+    const r = btn.getBoundingClientRect();
+    return t.clientX >= r.left - 6 && t.clientX <= r.right + 6 && t.clientY >= r.top - 6 && t.clientY <= r.bottom + 6;
+  };
+  ['pointerdown', 'mousedown', 'touchstart', 'pointerup', 'mouseup', 'touchend', 'click'].forEach((ev) =>
+    window.addEventListener(ev, (e) => {
+      if (!hitBtn(e)) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      if ((ev === 'pointerdown' || ev === 'mousedown' || ev === 'touchstart') && Date.now() - lastPress > 600) { lastPress = Date.now(); openPanel(); }
+    }, { capture: true, passive: false }));
   panel.addEventListener('input', (e) => {
     const k = e.target.dataset.k; if (!k) return;
     save({ [k]: k === 'on' ? e.target.checked : +e.target.value });
@@ -200,7 +220,8 @@
 
   // Called by the app (menu key on the remote) and for G on a keyboard.
   window.__ambientToggle = () => save({ on: !cfg.on });
-  window.__ambientPanel = () => { if (!host) return; showBtn(); btn.click(); };
+  window.__ambientPanel = () => { if (!host) return; showBtn(); openPanel(); };
+  window.__ambientReload = () => { cfg = load(); apply(); };
   document.addEventListener('keydown', (e) => {
     if ((e.key !== 'g' && e.key !== 'G') || e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
