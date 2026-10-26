@@ -92,7 +92,9 @@
     <button class="btn primary" id="ytgo">Play</button>
   </div>
   <button class="btn" id="share">Or share another tab</button>
-  <div class="hint">YouTube needs Chrome on a computer. Chrome will ask to share <b>this tab</b> — that is how the glow reads the colours.</div>
+  <button class="btn" id="yttv">YouTube TV</button>
+  <div class="hint">YouTube needs Chrome on a computer. Chrome will ask to share <b>this tab</b> — that is how the glow reads the colours.<br>
+    <b>YouTube TV</b> (the TV interface, sign in with your phone) needs the Ambient Video Chrome extension.</div>
 </div>
 
 <div id="bar" hidden>
@@ -255,6 +257,7 @@ async function playYT() {
   wake();
 }
 $('ytgo').onclick = playYT;
+$('yttv').onclick = () => { location.href = 'https://www.youtube.com/tv'; };
 // Old way: share a YouTube tab. Real full screen works here, but you control the video in that tab.
 $('share').onclick = async () => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { alert('Tab sharing needs Chrome on a computer.'); return; }
