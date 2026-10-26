@@ -15,6 +15,7 @@ dlg() { log "dialog: $1"; fd "display dialog \"$1\" with title \"$TITLE\" button
 ask() { fd "text returned of (display dialog \"$1\" default answer \"$2\" with title \"$TITLE\" buttons {\"Cancel\",\"Continue\"} default button 2)"; }
 choose() { fd "button returned of (display dialog \"$1\" with title \"$TITLE\" buttons {\"Cancel\",\"$2\",\"$3\"} default button 3)"; }
 pkill -f "osascript.*Install Ambient on Pocket TV" 2>/dev/null
+trap 'mkdir -p "$HOME/Documents/AmbientVideo"; cp "$LOG" "$HOME/Documents/AmbientVideo/install.log" 2>/dev/null' EXIT
 for pid in $(pgrep -f "Install Ambient on Pocket TV.app/Contents/MacOS/launcher"); do [ "$pid" != "$$" ] && kill "$pid" 2>/dev/null; done
 
 if ! [ -x "$ADB" ] || ! [ -r "$APK" ]; then
@@ -22,7 +23,20 @@ if ! [ -x "$ADB" ] || ! [ -r "$APK" ]; then
   exit 1
 fi
 
+log "adb: $("$ADB" version 2>&1 | head -1)"; "$ADB" start-server >>"$LOG" 2>&1
+# A Pocket TV plugged in with a USB cable is used first (no Wi-Fi needed).
+usb_serial() { "$ADB" devices 2>/dev/null | awk 'NR>1 && $1!="" && $1 !~ /:/ && $1 !~ /^emulator/ {print $1" "$2; exit}'; }
+U=$(usb_serial); log "usb: $U"
+if echo "$U" | grep -q unauthorized; then
+  dlg "Look at the Pocket TV: allow USB debugging for this Mac (tick 'Always allow'), then press OK."
+  sleep 1; U=$(usb_serial); log "usb: $U"
+fi
+if echo "$U" | grep -q " device$"; then
+  TARGET="${U%% *}"; VIA=usb
+fi
+
 # The Pocket TV's address: last one used here, else the Head Control pairing, else ask.
+if [ -z "$VIA" ]; then
 HOST=""
 [ -r "$CONF/host" ] && HOST=$(cat "$CONF/host")
 HG="$HOME/Library/Application Support/HeadGestureControl-TVBridge/tv-state.json"
@@ -30,8 +44,6 @@ HG="$HOME/Library/Application Support/HeadGestureControl-TVBridge/tv-state.json"
 HOST=$(ask "IP address of the Pocket TV (Settings → Network & Internet → your Wi-Fi):" "$HOST")
 [ -z "$HOST" ] && exit 0
 echo "$HOST" >"$CONF/host"
-
-log "adb: $("$ADB" version 2>&1 | head -1)"; "$ADB" start-server >>"$LOG" 2>&1
 TARGET="$HOST:5555"
 connect_ok() {
   out=$("$ADB" connect "$TARGET" 2>&1); log "connect $TARGET: $out"
@@ -54,6 +66,7 @@ while ! connect_ok; do
     TARGET="$cp"
   elif [ -z "$r" ]; then exit 0; fi
 done
+fi
 
 osascript -e 'display notification "Installing Ambient Video on the Pocket TV…" with title "Install Ambient on Pocket TV"' >/dev/null 2>&1
 out=$("$ADB" -s "$TARGET" install -r "$APK" 2>&1); log "install: $out"
@@ -62,9 +75,12 @@ if echo "$out" | grep -q "Success"; then
   # Small report for checking it works (WebView version + a screenshot), kept next to the log.
   "$ADB" -s "$TARGET" shell dumpsys package com.google.android.webview 2>/dev/null | grep -m1 versionName >>"$LOG"
   sleep 4; "$ADB" -s "$TARGET" exec-out screencap -p >"$CONF/screen.png" 2>/dev/null
+  # Copy of the report where Claude can read it to check the install.
+  R="$HOME/Documents/AmbientVideo"; mkdir -p "$R"; cp "$LOG" "$R/install.log" 2>/dev/null; cp "$CONF/screen.png" "$R/pocket-tv-screen.png" 2>/dev/null
   dlg "Installed. 'Ambient Video' is now open on the Pocket TV (also in its app list)."
 else
   short=$(echo "$out" | tail -3 | tr '"' "'")
   dlg "Installing failed:\n$short"
 fi
-"$ADB" disconnect "$TARGET" >/dev/null 2>&1
+[ "$VIA" = usb ] || "$ADB" disconnect "$TARGET" >/dev/null 2>&1
+mkdir -p "$HOME/Documents/AmbientVideo"; cp "$LOG" "$HOME/Documents/AmbientVideo/install.log" 2>/dev/null
