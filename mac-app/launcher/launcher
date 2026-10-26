@@ -1,0 +1,4 @@
+#!/bin/bash
+# Ambient Video: opens the app (Electron, inside this bundle) with the Ambient Video code.
+RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
+exec "$RES/Electron.app/Contents/MacOS/Electron" "$RES/app" "$@"

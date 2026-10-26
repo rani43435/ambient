@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { font: 500 15px/1.2 -apple-system, system-ui, sans-serif; color: #F2F2EF; }
+  .box { margin: 6px; padding: 18px 20px; background: rgba(20,21,24,.96); border: 1px solid #34373D; border-radius: 16px;
+    display: flex; flex-direction: column; gap: 14px; }
+  label { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  input[type=range] { width: 170px; accent-color: #7FE3B0; }
+  input[type=checkbox] { accent-color: #7FE3B0; width: 18px; height: 18px; }
+  input:focus-visible { outline: 2px solid #7FE3B0; outline-offset: 3px; }
+  .hint { font-size: 12px; color: #9A9DA4; }
+</style></head>
+<body>
+  <div class="box">
+    <label>Ambient glow <input type="checkbox" id="on"></label>
+    <label>Strength <input type="range" id="amount" min="0" max="100" step="5"></label>
+    <label>Video size <input type="range" id="size" min="50" max="100" step="5"></label>
+    <div class="hint">⌘G glow on/off · ⌘, this panel · Esc to close</div>
+  </div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let first = true; // the first update always fills every control
+  glow.onCfg((c) => {
+    $('on').checked = c.on;
+    if (first || document.activeElement !== $('amount')) $('amount').value = c.amount;
+    if (first || document.activeElement !== $('size')) $('size').value = c.size;
+    first = false;
+  });
+  $('on').onchange = (e) => glow.set({ on: e.target.checked });
+  $('amount').oninput = (e) => glow.set({ amount: +e.target.value });
+  $('size').oninput = (e) => glow.set({ size: +e.target.value });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') glow.close(); });
+  addEventListener('load', () => $('amount').focus());
+</script>
+</body></html>

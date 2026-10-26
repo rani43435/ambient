@@ -1,0 +1,9 @@
+{
+  "name": "ambient-video",
+  "productName": "Ambient Video",
+  "version": "1.0.0",
+  "description": "YouTube TV and any video site with an Ambilight glow around the picture.",
+  "main": "main.js",
+  "author": "Rani Marjy",
+  "license": "UNLICENSED"
+}
