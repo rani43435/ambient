@@ -85,10 +85,10 @@
 
 <div id="pick">
   <div class="title">Ambient Video</div>
-  <div class="sub">Pick a video from this device, or paste a YouTube link</div>
+  <div class="sub">Pick a video from this device, or paste a YouTube or Vimeo link</div>
   <button class="btn primary" id="open" autofocus>Choose video</button>
   <div class="row">
-    <input id="ytlink" placeholder="YouTube link" autocomplete="off" spellcheck="false">
+    <input id="ytlink" placeholder="YouTube or Vimeo link" autocomplete="off" spellcheck="false">
     <button class="btn primary" id="ytgo">Play</button>
   </div>
   <button class="btn" id="share">Or share another tab</button>
@@ -219,6 +219,47 @@ function stopYT() {
   if (yt) { yt.destroy(); yt = null; $('yt').innerHTML = '<div id="ytp"></div>'; }
   clearInterval(ytTimer); mode = 'file'; document.body.classList.remove('ytmode');
 }
+// Vimeo links play the same way: Vimeo's player in the page, our controls, glow from the tab capture.
+function vimeoId(t) {
+  const m = t.trim().match(/vimeo\.com\/(?:video\/|channels\/[\w-]+\/|groups\/[\w-]+\/videos\/|album\/\d+\/video\/|ondemand\/[\w-]+\/)?(\d{5,})(?:\/([0-9a-f]{6,}))?/i);
+  if (!m) return null;
+  const h = t.match(/[?&]h=([0-9a-f]+)/i);
+  return { id: m[1], h: (h && h[1]) || m[2] || '' };
+}
+let vimeoReady = null;
+function loadVimeo() {
+  if (!vimeoReady) vimeoReady = new Promise((res, rej) => {
+    const sc = document.createElement('script'); sc.src = 'https://player.vimeo.com/api/player.js';
+    sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+  });
+  return vimeoReady;
+}
+// Wraps Vimeo's player so the rest of the page can use it like the YouTube one.
+function vimeoPlayer(v) {
+  const f = document.createElement('iframe');
+  f.src = 'https://player.vimeo.com/video/' + v.id + '?' + (v.h ? 'h=' + v.h + '&' : '') + 'autoplay=1&controls=0&dnt=1&playsinline=1&title=0&byline=0&portrait=0';
+  f.allow = 'autoplay; fullscreen; picture-in-picture';
+  $('ytp').replaceWith(f);
+  const p = new Vimeo.Player(f), s = { t: 0, d: 0, on: false };
+  p.on('timeupdate', (e) => { s.t = e.seconds; if (e.duration) s.d = e.duration; });
+  p.on('play', () => { s.on = true; setIcon(false); });
+  p.on('playing', () => { s.on = true; setIcon(false); });
+  p.on('pause', () => { s.on = false; setIcon(true); });
+  p.on('ended', () => { s.on = false; setIcon(true); });
+  p.ready().then(() => Promise.all([p.getDuration(), p.getVideoWidth(), p.getVideoHeight()])).then(([d, w, h]) => {
+    s.d = d; if (w && h) stage.style.setProperty('--ratio', w + '/' + h);
+  }).catch(() => {});
+  p.play().catch(() => setIcon(true)); // browsers may block sound autoplay: then press play
+  return {
+    getPlayerState: () => (s.on ? 1 : 2),
+    playVideo: () => { s.on = true; setIcon(false); p.play().catch(() => { s.on = false; setIcon(true); }); },
+    pauseVideo: () => { s.on = false; setIcon(true); p.pause().catch(() => {}); },
+    getCurrentTime: () => s.t,
+    getDuration: () => s.d,
+    seekTo: (t) => { s.t = t; p.setCurrentTime(t).catch(() => {}); },
+    destroy: () => { p.destroy().catch(() => {}); },
+  };
+}
 let apiReady = null;
 function loadAPI() {
   if (!apiReady) apiReady = new Promise((res) => {
@@ -228,9 +269,10 @@ function loadAPI() {
   return apiReady;
 }
 async function playYT() {
-  const v = ytId($('ytlink').value);
-  if (!v) { $('ytlink').focus(); $('ytlink').placeholder = 'Paste a YouTube link here'; $('ytlink').value = ''; return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { alert('YouTube mode needs Chrome on a computer.'); return; }
+  const vm = vimeoId($('ytlink').value);
+  const v = vm ? null : ytId($('ytlink').value);
+  if (!v && !vm) { $('ytlink').focus(); $('ytlink').placeholder = 'Paste a YouTube or Vimeo link here'; $('ytlink').value = ''; return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { alert('YouTube and Vimeo links need Chrome on a computer.'); return; }
   let st;
   try {
     st = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false,
@@ -242,12 +284,17 @@ async function playYT() {
   mode = 'yt'; document.body.classList.add('ytmode');
   stage.style.setProperty('--ratio', '16/9');
   $('pick').hidden = true; $('bar').hidden = false;
+  if (vm) {
+    try { await loadVimeo(); } catch (e) { toast('Could not load the Vimeo player.'); return; }
+    yt = vimeoPlayer(vm);
+  } else {
   await loadAPI();
   yt = new YT.Player('ytp', {
     videoId: v.id,
     playerVars: Object.assign({ autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, fs: 0, disablekb: 1, controls: 0, iv_load_policy: 3 }, v.list ? { list: v.list } : {}),
     events: { onStateChange: (e) => setIcon(e.data !== YT.PlayerState.PLAYING) }
   });
+  }
   ytTimer = setInterval(() => {
     if (!yt || !yt.getDuration) return;
     const t = yt.getCurrentTime(), d = yt.getDuration();
