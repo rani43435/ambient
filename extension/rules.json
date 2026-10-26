@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1, "priority": 1,
+    "action": { "type": "modifyHeaders", "requestHeaders": [
+      { "header": "user-agent", "operation": "set", "value": "Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) 76.0.3809.146/6.0 TV Safari/537.36" },
+      { "header": "sec-ch-ua", "operation": "remove" },
+      { "header": "sec-ch-ua-mobile", "operation": "remove" },
+      { "header": "sec-ch-ua-platform", "operation": "remove" }
+    ] },
+    "condition": { "regexFilter": "^https://www\\.youtube\\.com/tv([/?#]|$)", "resourceTypes": ["main_frame"] }
+  }
+]

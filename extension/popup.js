@@ -7,3 +7,4 @@ chrome.storage.sync.get(DEF, (v) => {
 document.getElementById('on').onchange = (e) => chrome.storage.sync.set({ on: e.target.checked });
 document.getElementById('amount').oninput = (e) => chrome.storage.sync.set({ amount: +e.target.value });
 document.getElementById('size').oninput = (e) => chrome.storage.sync.set({ size: +e.target.value });
+document.getElementById('tv').onclick = () => { chrome.tabs.create({ url: 'https://www.youtube.com/tv' }); window.close(); };

@@ -7,13 +7,17 @@
   label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; }
   input[type=range] { width: 120px; accent-color: #7FE3B0; }
   input[type=checkbox] { accent-color: #7FE3B0; width: 16px; height: 16px; }
+  #tv { width: 100%; font: 600 13px system-ui, sans-serif; color: #7FE3B0; background: transparent; border: 1.5px solid #7FE3B0;
+    border-radius: 999px; padding: 8px 0; margin: 0 0 6px; cursor: pointer; }
+  #tv:hover { background: #7FE3B0; color: #000; }
   p { color: #9A9DA4; font-size: 12px; margin: 12px 0 0; }
 </style></head>
 <body>
   <h1>Ambient Video</h1>
+  <button id="tv">Open YouTube TV</button>
   <label>Glow on <input type="checkbox" id="on"></label>
   <label>Strength <input type="range" id="amount" min="0" max="100"></label>
   <label>Video size <input type="range" id="size" min="50" max="100"></label>
-  <p>Also in the player: the glow button next to the settings gear, or press G.</p>
+  <p>On youtube.com: the glow button next to the settings gear, or press G.<br>On YouTube TV: the round button top-left of the video, or press G. Arrows, Enter and Esc move around YouTube TV.</p>
   <script src="popup.js"></script>
 </body></html>
