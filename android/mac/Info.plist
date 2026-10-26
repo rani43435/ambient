@@ -8,5 +8,7 @@
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>launcher</string>
   <key>LSUIElement</key><true/>
+  <key>NSLocalNetworkUsageDescription</key><string>Installs the Ambient Video app on your Pocket TV over Wi-Fi.</string>
+  <key>NSBonjourServices</key><array><string>_adb-tls-connect._tcp</string><string>_adb-tls-pairing._tcp</string><string>_adb._tcp</string></array>
 </dict>
 </plist>

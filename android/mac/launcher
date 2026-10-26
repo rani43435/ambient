@@ -23,7 +23,9 @@ if ! [ -x "$ADB" ] || ! [ -r "$APK" ]; then
   exit 1
 fi
 
-log "adb: $("$ADB" version 2>&1 | head -1)"; "$ADB" start-server >>"$LOG" 2>&1
+log "adb: $("$ADB" version 2>&1 | head -1)"
+# Restart adb so it runs under this app (an older adb server may lack the Local Network permission).
+"$ADB" kill-server >/dev/null 2>&1; "$ADB" start-server >>"$LOG" 2>&1
 # A Pocket TV plugged in with a USB cable is used first (no Wi-Fi needed).
 usb_serial() { "$ADB" devices 2>/dev/null | awk 'NR>1 && $1!="" && $1 !~ /:/ && $1 !~ /^emulator/ {print $1" "$2; exit}'; }
 U=$(usb_serial); log "usb: $U"
@@ -70,6 +72,15 @@ echo "$HOST" >"$CONF/host"
 TARGET="${FOUND:-$HOST:5555}"
 connect_ok() {
   out=$("$ADB" connect "$TARGET" 2>&1); log "connect $TARGET: $out"
+  # The TV answers ping and port 5555, yet adb gets "No route to host": macOS is blocking
+  # this app from the local network (Privacy & Security → Local Network).
+  if echo "$out" | grep -q "No route to host" && nc -z -G 2 "${TARGET%:*}" "${TARGET##*:}" >/dev/null 2>&1; then
+    log "blocked by macOS Local Network permission"
+    open "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_LocalNetwork" 2>/dev/null
+    dlg "The Pocket TV is on your Wi-Fi (found at ${TARGET%:*}), but macOS is blocking this app from the local network.\n\nIn the Settings window that just opened (Privacy & Security → Local Network), switch ON 'Install Ambient on Pocket TV' (or 'adb'), then press OK."
+    "$ADB" kill-server >/dev/null 2>&1; "$ADB" start-server >>"$LOG" 2>&1
+    out=$("$ADB" connect "$TARGET" 2>&1); log "connect again $TARGET: $out"
+  fi
   echo "$out" | grep -q "connected to" || return 1
   for i in 1 2 3 4 5 6 7 8 9 10; do
     st=$("$ADB" -s "$TARGET" get-state 2>&1)
