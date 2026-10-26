@@ -49,6 +49,20 @@ public class MainActivity extends Activity {
     private String script = "";
     private boolean docStart;
     private SharedPreferences prefs;
+    private String defaultUA;
+    // youtube.com/tv only opens for TVs; this is a Samsung TV browser's user agent.
+    static final String TV_UA = "Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) 76.0.3809.146/6.0 TV Safari/537.36";
+
+    static boolean isYtTv(String url) {
+        return url != null && url.matches("^https?://(www\\.)?youtube\\.com/tv.*");
+    }
+
+    /** Load a URL with the right user agent (TV agent only for the YouTube TV interface). */
+    private void go(String url) {
+        String ua = isYtTv(url) ? TV_UA : defaultUA;
+        if (!ua.equals(web.getSettings().getUserAgentString())) web.getSettings().setUserAgentString(ua);
+        web.loadUrl(url);
+    }
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -79,6 +93,7 @@ public class MainActivity extends Activity {
         s.setUseWideViewPort(true);
         s.setSupportMultipleWindows(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+        defaultUA = s.getUserAgentString();
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
 
@@ -93,6 +108,12 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 String scheme = r.getUrl().getScheme();
+                String u = r.getUrl().toString();
+                // Switch user agent when going into or out of the YouTube TV interface.
+                if (r.isForMainFrame() && ("http".equals(scheme) || "https".equals(scheme) || "file".equals(scheme))) {
+                    String want = isYtTv(u) ? TV_UA : defaultUA;
+                    if (!want.equals(v.getSettings().getUserAgentString())) { go(u); return true; }
+                }
                 // Stay in the app: ignore links that try to open other apps (intent://, vnd.youtube:, ...)
                 return scheme == null || !(scheme.equals("http") || scheme.equals("https") || scheme.equals("file") || scheme.equals("blob") || scheme.equals("about"));
             }
@@ -160,7 +181,7 @@ public class MainActivity extends Activity {
                 }
             }
         }
-        web.loadUrl(url != null ? url : HOME);
+        go(url != null ? url : HOME);
     }
 
     @Override
@@ -185,7 +206,7 @@ public class MainActivity extends Activity {
             case KeyEvent.KEYCODE_BACK:
                 if (fullView != null) { leaveFull(); return true; }
                 if (web.canGoBack()) { web.goBack(); return true; }
-                if (!HOME.equals(web.getUrl())) { web.loadUrl(HOME); return true; }
+                if (!HOME.equals(web.getUrl())) { go(HOME); return true; }
                 return super.onKeyDown(code, e);
             case KeyEvent.KEYCODE_MENU:
             case KeyEvent.KEYCODE_SETTINGS:

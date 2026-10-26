@@ -36,7 +36,8 @@
   <div class="title">Ambient Video</div>
   <div class="sub">YouTube or any video site — with the glow around the picture</div>
   <div class="btns">
-    <button class="btn primary" id="yt" autofocus>YouTube</button>
+    <button class="btn primary" id="yttv" autofocus>YouTube TV</button>
+    <button class="btn" id="yt">YouTube</button>
     <button class="btn" id="local">Video from this device</button>
   </div>
   <div class="row">
@@ -44,7 +45,7 @@
     <button class="btn primary" id="go">Go</button>
   </div>
   <div id="recent"></div>
-  <div class="hint">On a video: tap the round glow button (top left) or press the remote's Menu key for glow on/off, strength and size.
+  <div class="hint"><b>YouTube TV</b> is made for the remote, and you can sign in with your phone (it shows a code for yt.be/activate).<br>On a video: tap the round glow button (top left) or press the remote's Menu key for glow on/off, strength and size.
     Back goes back. Netflix, HBO and other protected services show black and can't glow.</div>
 </div>
 
@@ -70,6 +71,7 @@ function go(text) {
   location.href = url;
 }
 $('yt').onclick = () => (location.href = 'https://m.youtube.com/');
+$('yttv').onclick = () => (location.href = 'https://www.youtube.com/tv');
 $('go').onclick = () => go($('link').value);
 $('link').onkeydown = (e) => { if (e.key === 'Enter') go($('link').value); };
 for (const u of getRecent()) {
