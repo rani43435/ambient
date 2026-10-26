@@ -88,9 +88,10 @@
   <div class="sub">Pick a video from this device, or paste a YouTube or Vimeo link</div>
   <button class="btn primary" id="open" autofocus>Choose video</button>
   <div class="row">
-    <input id="ytlink" placeholder="YouTube or Vimeo link" autocomplete="off" spellcheck="false">
+    <input id="ytlink" placeholder="YouTube, Vimeo or any video link" autocomplete="off" spellcheck="false">
     <button class="btn primary" id="ytgo">Play</button>
   </div>
+  <button class="btn primary" id="connect" hidden>Connect glow to the video tab</button>
   <button class="btn" id="share">Or share another tab</button>
   <button class="btn" id="yttv">YouTube TV</button>
   <div class="hint">YouTube needs Chrome on a computer. Chrome will ask to share <b>this tab</b> — that is how the glow reads the colours.<br>
@@ -260,6 +261,17 @@ function vimeoPlayer(v) {
     destroy: () => { p.destroy().catch(() => {}); },
   };
 }
+// Any other site (Plex, archive.org...) can't play inside this page, so it opens in its own
+// tab; back here, "Connect glow" shares that tab and the glow reads its colours.
+function openOther(t) {
+  t = t.trim();
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(t)) t = 'https://' + t;
+  if (!/^https?:\/\/\S+\.\S+/i.test(t)) return false;
+  window.open(t, '_blank');
+  $('connect').hidden = false;
+  toast('Start the video in the new tab, then come back here and press <b>Connect glow</b>.');
+  return true;
+}
 let apiReady = null;
 function loadAPI() {
   if (!apiReady) apiReady = new Promise((res) => {
@@ -271,7 +283,8 @@ function loadAPI() {
 async function playYT() {
   const vm = vimeoId($('ytlink').value);
   const v = vm ? null : ytId($('ytlink').value);
-  if (!v && !vm) { $('ytlink').focus(); $('ytlink').placeholder = 'Paste a YouTube or Vimeo link here'; $('ytlink').value = ''; return; }
+  if (!v && !vm && openOther($('ytlink').value)) return;
+  if (!v && !vm) { $('ytlink').focus(); $('ytlink').placeholder = 'Paste a video link here (YouTube, Vimeo, Plex…)'; $('ytlink').value = ''; return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { alert('YouTube and Vimeo links need Chrome on a computer.'); return; }
   let st;
   try {
@@ -306,6 +319,7 @@ async function playYT() {
 $('ytgo').onclick = playYT;
 $('yttv').onclick = () => { location.href = 'https://www.youtube.com/tv'; };
 // Old way: share a YouTube tab. Real full screen works here, but you control the video in that tab.
+$('connect').onclick = () => { $('connect').hidden = true; $('share').onclick(); };
 $('share').onclick = async () => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { alert('Tab sharing needs Chrome on a computer.'); return; }
   let st;
