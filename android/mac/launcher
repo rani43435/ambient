@@ -1,0 +1,70 @@
+#!/bin/bash
+# Install Ambient on Pocket TV — installs the "Ambient Video" app on the RayNeo Pocket TV over Wi-Fi.
+# adb and the APK are inside this app. The Pocket TV needs "USB debugging" switched on (done once already).
+RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
+ADB="$RES/adb"
+APK="$RES/AmbientVideo.apk"
+PKG="io.github.rani43435.ambient"
+TITLE="Install Ambient on Pocket TV"
+CONF="$HOME/Library/Application Support/AmbientVideo"
+LOG="$CONF/install.log"
+mkdir -p "$CONF"; echo "--- $(date)" >>"$LOG"
+log() { echo "$*" >>"$LOG"; }
+fd() { osascript -e "tell application \"Finder\"" -e "activate" -e "$1" -e "end tell" 2>/dev/null; }
+dlg() { log "dialog: $1"; fd "display dialog \"$1\" with title \"$TITLE\" buttons {\"OK\"} default button 1" >/dev/null; }
+ask() { fd "text returned of (display dialog \"$1\" default answer \"$2\" with title \"$TITLE\" buttons {\"Cancel\",\"Continue\"} default button 2)"; }
+choose() { fd "button returned of (display dialog \"$1\" with title \"$TITLE\" buttons {\"Cancel\",\"$2\",\"$3\"} default button 3)"; }
+pkill -f "osascript.*Install Ambient on Pocket TV" 2>/dev/null
+for pid in $(pgrep -f "Install Ambient on Pocket TV.app/Contents/MacOS/launcher"); do [ "$pid" != "$$" ] && kill "$pid" 2>/dev/null; done
+
+if ! [ -x "$ADB" ] || ! [ -r "$APK" ]; then
+  dlg "macOS blocked this app's files. Move 'Install Ambient on Pocket TV' into Applications and open it from there."
+  exit 1
+fi
+
+# The Pocket TV's address: last one used here, else the Head Control pairing, else ask.
+HOST=""
+[ -r "$CONF/host" ] && HOST=$(cat "$CONF/host")
+HG="$HOME/Library/Application Support/HeadGestureControl-TVBridge/tv-state.json"
+[ -z "$HOST" ] && [ -r "$HG" ] && HOST=$(sed -n 's/.*"host": *"\([^"]*\)".*/\1/p' "$HG" | head -1)
+HOST=$(ask "IP address of the Pocket TV (Settings → Network & Internet → your Wi-Fi):" "$HOST")
+[ -z "$HOST" ] && exit 0
+echo "$HOST" >"$CONF/host"
+
+log "adb: $("$ADB" version 2>&1 | head -1)"; "$ADB" start-server >>"$LOG" 2>&1
+TARGET="$HOST:5555"
+connect_ok() {
+  out=$("$ADB" connect "$TARGET" 2>&1); log "connect $TARGET: $out"
+  echo "$out" | grep -q "connected to" || return 1
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    st=$("$ADB" -s "$TARGET" get-state 2>&1)
+    [ "$st" = "device" ] && return 0
+    echo "$st" | grep -q unauthorized && dlg "Look at the Pocket TV: allow USB debugging for this Mac (tick 'Always allow'), then press OK."
+    sleep 1
+  done
+  return 1
+}
+while ! connect_ok; do
+  r=$(choose "Could not reach the Pocket TV at $HOST.\n\nCheck that it is on and on the same Wi-Fi, and that Settings → System → Developer options → USB debugging is ON.\n\nThen press Retry." "Pairing code" "Retry")
+  if [ "$r" = "Pairing code" ]; then
+    pp=$(ask "Developer options → Wireless debugging → Pair device with pairing code.\nIP address and port shown there (e.g. $HOST:37123):" "$HOST:"); [ -z "$pp" ] && exit 0
+    code=$(ask "The 6-digit Wi-Fi pairing code:" ""); [ -z "$code" ] && exit 0
+    "$ADB" pair "$pp" "$code" >>"$LOG" 2>&1
+    cp=$(ask "Now the IP address and port under 'Wireless debugging' (not the pairing one):" "$HOST:"); [ -z "$cp" ] && exit 0
+    TARGET="$cp"
+  elif [ -z "$r" ]; then exit 0; fi
+done
+
+osascript -e 'display notification "Installing Ambient Video on the Pocket TV…" with title "Install Ambient on Pocket TV"' >/dev/null 2>&1
+out=$("$ADB" -s "$TARGET" install -r "$APK" 2>&1); log "install: $out"
+if echo "$out" | grep -q "Success"; then
+  "$ADB" -s "$TARGET" shell am start -n "$PKG/.MainActivity" >/dev/null 2>&1
+  # Small report for checking it works (WebView version + a screenshot), kept next to the log.
+  "$ADB" -s "$TARGET" shell dumpsys package com.google.android.webview 2>/dev/null | grep -m1 versionName >>"$LOG"
+  sleep 4; "$ADB" -s "$TARGET" exec-out screencap -p >"$CONF/screen.png" 2>/dev/null
+  dlg "Installed. 'Ambient Video' is now open on the Pocket TV (also in its app list)."
+else
+  short=$(echo "$out" | tail -3 | tr '"' "'")
+  dlg "Installing failed:\n$short"
+fi
+"$ADB" disconnect "$TARGET" >/dev/null 2>&1

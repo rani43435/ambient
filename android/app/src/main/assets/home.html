@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambient Video</title>
+<style>
+  /* On the glasses black is see-through, so only the controls and the video show. */
+  :root { --fg: #F2F2EF; --dim: #9A9DA4; --line: #34373D; --accent: #7FE3B0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--fg); font-family: system-ui, Roboto, sans-serif; }
+  #home { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
+  .title { font-size: 34px; font-weight: 600; }
+  .sub { font-size: 17px; color: var(--dim); }
+  .row { display: flex; gap: 10px; width: min(680px, 92vw); }
+  .row input { flex: 1; min-width: 0; font: inherit; font-size: 17px; color: var(--fg); background: #111; border: 1.5px solid var(--line);
+    border-radius: 999px; padding: 0 18px; min-height: 48px; outline: none; }
+  .row input:focus { border-color: var(--accent); }
+  .btn { font: inherit; font-size: 17px; font-weight: 600; color: var(--fg); background: transparent; border: 1.5px solid var(--line);
+    border-radius: 999px; min-height: 48px; padding: 0 22px; cursor: pointer; white-space: nowrap; }
+  .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .btn:focus { outline: none; background: var(--fg); color: #000; border-color: var(--fg); }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  #recent { display: flex; flex-direction: column; gap: 8px; width: min(680px, 92vw); }
+  #recent .btn { font-weight: 500; font-size: 15px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  .hint { font-size: 14px; color: var(--dim); max-width: 600px; line-height: 1.4; }
+  #file { display: none; }
+  #stage { position: fixed; inset: 0; background: #000; display: none; align-items: center; justify-content: center; }
+  #stage.on { display: flex; }
+  #player { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+  #player video { width: 100%; height: 100%; object-fit: contain; display: block; }
+</style>
+</head>
+<body>
+<div id="home">
+  <div class="title">Ambient Video</div>
+  <div class="sub">YouTube or any video site — with the glow around the picture</div>
+  <div class="btns">
+    <button class="btn primary" id="yt" autofocus>YouTube</button>
+    <button class="btn" id="local">Video from this device</button>
+  </div>
+  <div class="row">
+    <input id="link" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
+    <button class="btn primary" id="go">Go</button>
+  </div>
+  <div id="recent"></div>
+  <div class="hint">On a video: tap the round glow button (top left) or press the remote's Menu key for glow on/off, strength and size.
+    Back goes back. Netflix, HBO and other protected services show black and can't glow.</div>
+</div>
+
+<div id="stage"><div id="player"><video id="vid" controls playsinline></video></div></div>
+<input type="file" id="file" accept="video/*">
+
+<script src="ambient.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+function getRecent() { try { return JSON.parse(localStorage.getItem('recent') || '[]'); } catch (e) { return []; } }
+function addRecent(u) {
+  const r = getRecent().filter((x) => x !== u); r.unshift(u);
+  try { localStorage.setItem('recent', JSON.stringify(r.slice(0, 5))); } catch (e) {}
+}
+function go(text) {
+  text = (text || '').trim();
+  if (!text) { $('link').focus(); return; }
+  let url;
+  if (/^https?:\/\//i.test(text)) url = text;
+  else if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(text)) url = 'https://' + text;
+  else url = 'https://m.youtube.com/results?search_query=' + encodeURIComponent(text);
+  addRecent(url);
+  location.href = url;
+}
+$('yt').onclick = () => (location.href = 'https://m.youtube.com/');
+$('go').onclick = () => go($('link').value);
+$('link').onkeydown = (e) => { if (e.key === 'Enter') go($('link').value); };
+for (const u of getRecent()) {
+  const b = document.createElement('button'); b.className = 'btn'; b.textContent = u.replace(/^https?:\/\/(www\.|m\.)?/, '');
+  b.onclick = () => go(u); $('recent').appendChild(b);
+}
+
+// Local video: plays here, full screen, and the glow attaches to it like on any site.
+let url = null;
+$('local').onclick = () => $('file').click();
+$('file').onchange = () => {
+  const f = $('file').files[0]; if (!f) return;
+  if (url) URL.revokeObjectURL(url);
+  url = URL.createObjectURL(f);
+  $('vid').src = url; $('stage').classList.add('on'); $('vid').play();
+  history.pushState({ playing: 1 }, ''); // Back closes the player
+  $('vid').focus();
+};
+addEventListener('popstate', () => { $('vid').pause(); $('stage').classList.remove('on'); $('local').focus(); });
+</script>
+</body>
+</html>
