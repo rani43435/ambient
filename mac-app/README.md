@@ -9,4 +9,4 @@ Uses the same glow script as the Pocket TV app (`app/ambient.js`, copied from
 - `launcher/` — the `Ambient Video.app` wrapper: `Contents/MacOS/launcher` starts
   `Contents/Resources/Electron.app` (Electron 33.2.1, darwin-arm64) with `Contents/Resources/app`.
 
-Shortcuts: ⌘, glow settings · ⌘G glow on/off · ⌘⇧H home · ⌘Y YouTube TV · ⌘[ back · ⌃⌘F full screen.
+Home button (top-right) or the Home button in the glow panel. Shortcuts: ⌘, glow settings · ⌘G glow on/off · ⌘⇧H home · ⌘Y YouTube TV · ⌘[ back · ⌃⌘F full screen.

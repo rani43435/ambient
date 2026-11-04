@@ -35,8 +35,9 @@ ipcMain.on('cfg-get', (e) => { e.returnValue = JSON.stringify(cfg); });
 ipcMain.on('cfg-set', (e, json) => { try { saveCfg(JSON.parse(json)); } catch (err) {} });
 ipcMain.on('panel', () => togglePanel());
 ipcMain.on('panel-close', () => { if (panel && !panel.isDestroyed()) panel.hide(); });
+ipcMain.on('go-home', () => { if (panel && !panel.isDestroyed()) panel.hide(); go(HOME); if (win) win.focus(); });
 
-let win = null, panel = null;
+let win = null, panel = null, homeBtn = null;
 
 function go(url) {
   url = toYtTv(url);
@@ -72,14 +73,44 @@ function createWindow() {
   win.on('page-title-updated', (e) => { e.preventDefault(); win.setTitle('Ambient Video'); });
   win.on('move', placePanel);
   win.on('resize', placePanel);
+  win.on('move', placeHome);
+  win.on('resize', placeHome);
+  win.on('enter-full-screen', placeHome);
+  win.on('leave-full-screen', placeHome);
+  // The Home button shows on every page except the home page itself.
+  const onPage = () => showHome(!win.webContents.getURL().startsWith('file:'));
+  win.webContents.on('did-navigate', onPage);
+  win.webContents.on('did-navigate-in-page', onPage);
   go(HOME);
+}
+
+// ---- Home button: a small round button in the top-right corner of the window ----
+function placeHome() {
+  if (!homeBtn || homeBtn.isDestroyed() || !win) return;
+  const b = win.getContentBounds();
+  homeBtn.setBounds({ x: b.x + b.width - 64, y: b.y + 12, width: 52, height: 52 });
+}
+function showHome(on) {
+  if (!homeBtn || homeBtn.isDestroyed()) {
+    if (!on) return;
+    homeBtn = new BrowserWindow({
+      parent: win, frame: false, resizable: false, show: false, transparent: true, hasShadow: false,
+      fullscreenable: false, skipTaskbar: true, backgroundColor: '#00000000', movable: false,
+      webPreferences: { preload: path.join(__dirname, 'panel-preload.js'), contextIsolation: true },
+    });
+    homeBtn.loadFile(path.join(__dirname, 'home-button.html'));
+    homeBtn.once('ready-to-show', () => { placeHome(); if (homeBtn.wantShown) homeBtn.showInactive(); });
+  }
+  homeBtn.wantShown = on;
+  if (on) { placeHome(); if (homeBtn.webContents.isLoading()) return; homeBtn.showInactive(); }
+  else homeBtn.hide();
 }
 
 // ---- Glow settings window (works on every site, even ones that grab the mouse) ----
 function placePanel() {
   if (!panel || panel.isDestroyed() || !win) return;
   const b = win.getContentBounds();
-  panel.setBounds({ x: b.x + 24, y: b.y + 40, width: 340, height: 250 });
+  panel.setBounds({ x: b.x + 24, y: b.y + 40, width: 340, height: 300 });
 }
 function togglePanel() {
   if (panel && !panel.isDestroyed()) {
