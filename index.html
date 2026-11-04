@@ -73,7 +73,18 @@
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 14px;
     background: rgba(20,21,24,.95); border: 1px solid var(--line); font-size: 16px; max-width: 92vw; text-align: center; transition: opacity .4s; }
   #toast[hidden] { display: none; }
-  .hint { font-size: 14px; color: var(--dim); max-width: 560px; }
+  .hint { font-size: 14px; color: var(--dim); max-width: 600px; line-height: 1.4; }
+  /* Start screen: same look as the app's home screen */
+  #pick { padding: 24px; overflow-y: auto; }
+  #pick .btns { flex-wrap: wrap; justify-content: center; }
+  #pick .btn { min-height: 48px; padding: 0 22px; }
+  #pick .btn:focus { background: var(--fg); color: #000; border-color: var(--fg); }
+  #pick .row { width: min(680px, 92vw); }
+  #pick .row input { min-width: 0; min-height: 48px; }
+  #recent { display: flex; flex-direction: column; gap: 8px; width: min(680px, 92vw); }
+  #recent:empty { display: none; }
+  #recent .btn { font-weight: 500; font-size: 15px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  #pick .btn.quiet { border-color: transparent; color: var(--dim); font-weight: 500; font-size: 15px; min-height: 40px; }
 </style>
 </head>
 <body>
@@ -85,17 +96,21 @@
 
 <div id="pick">
   <div class="title">Ambient Video</div>
-  <div class="sub">Pick a video from this device, or paste a YouTube or Vimeo link</div>
-  <button class="btn primary" id="open" autofocus>Choose video</button>
-  <div class="row">
-    <input id="ytlink" placeholder="YouTube, Vimeo or any video link" autocomplete="off" spellcheck="false">
-    <button class="btn primary" id="ytgo">Play</button>
+  <div class="sub">YouTube or any video site — with the glow around the picture</div>
+  <div class="btns">
+    <button class="btn primary" id="yttv" autofocus>YouTube TV</button>
+    <button class="btn" id="open">Video from this device</button>
   </div>
+  <div class="row">
+    <input id="ytlink" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
+    <button class="btn primary" id="ytgo">Go</button>
+  </div>
+  <div id="recent"></div>
   <button class="btn primary" id="connect" hidden>Connect glow to the video tab</button>
-  <button class="btn" id="share">Or share another tab</button>
-  <button class="btn" id="yttv">YouTube TV</button>
-  <div class="hint">YouTube needs Chrome on a computer. Chrome will ask to share <b>this tab</b> — that is how the glow reads the colours.<br>
-    <b>YouTube TV</b> (the TV interface, sign in with your phone) needs the Ambient Video Chrome extension.</div>
+  <button class="btn quiet" id="share">Or share another tab</button>
+  <div class="hint"><b>YouTube TV</b>: sign in with your phone (it shows a code for yt.be/activate). Needs the Ambient Video Chrome extension.<br>
+    YouTube and Vimeo links play here with the glow (Chrome on a computer will ask to share <b>this tab</b>). Any other link (Plex, archive.org…) opens in a new tab, then press <b>Connect glow</b>.<br>
+    Netflix, HBO and other protected services can't play here.</div>
 </div>
 
 <div id="bar" hidden>
@@ -280,7 +295,30 @@ function loadAPI() {
   });
   return apiReady;
 }
+// Recent links, like the app (kept on this device only)
+function getRecent() { try { return JSON.parse(localStorage.getItem('recent') || '[]'); } catch (e) { return []; } }
+function addRecent(u) {
+  u = u.trim(); if (!u) return;
+  const r = getRecent().filter((x) => x !== u); r.unshift(u);
+  try { localStorage.setItem('recent', JSON.stringify(r.slice(0, 5))); } catch (e) {}
+  showRecent();
+}
+function showRecent() {
+  $('recent').innerHTML = '';
+  for (const u of getRecent()) {
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = u.replace(/^https?:\/\/(www\.|m\.)?/, '');
+    b.onclick = () => { $('ytlink').value = u; playYT(); }; $('recent').appendChild(b);
+  }
+}
+showRecent();
+const isLink = (t) => /^https?:\/\/\S+\.\S+/i.test(t) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(t);
 async function playYT() {
+  const text = $('ytlink').value.trim();
+  if (text && !isLink(text)) { // words, not a link: search YouTube TV, same as the app
+    const u = 'https://www.youtube.com/tv#/search?q=' + encodeURIComponent(text);
+    addRecent(u); location.href = u; return;
+  }
+  if (text) addRecent(text);
   const vm = vimeoId($('ytlink').value);
   const v = vm ? null : ytId($('ytlink').value);
   if (!v && !vm && openOther($('ytlink').value)) return;
