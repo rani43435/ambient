@@ -91,7 +91,7 @@
   html.not-chrome #pick #nochrome { display: block; }
   /* Mac app download: only on a Mac */
   #pick .macdl { display: none; flex-direction: column; align-items: center; gap: 8px; }
-  html.is-mac #pick .macdl { display: flex; }
+  html.is-mac #pick #macdl, html.is-win #pick #windl { display: flex; }
   #pick .macdl .btn { display: inline-flex; align-items: center; text-decoration: none; }
   #pick .macdl a:not(.btn) { color: var(--accent); }
   #recent .btn { font-weight: 500; font-size: 15px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
@@ -113,6 +113,10 @@
     <a class="btn" id="macbtn" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-arm64.zip">Download the Mac app</a>
     <div class="hint">Apple Silicon (M1–M4) · <a id="macintel" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-x64.zip">Intel Mac</a>.
       Open the zip, drag <b>Ambient Video</b> to Applications. First time: System Settings → Privacy &amp; Security → <b>Open Anyway</b>.</div>
+  </div>
+  <div class="macdl windl" id="windl">
+    <a class="btn" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-windows-x64.zip">Download the Windows app</a>
+    <div class="hint">Unzip it, open the folder and run <b>Ambient Video.exe</b>. If Windows warns you: <b>More info</b> → <b>Run anyway</b>.</div>
   </div>
   <div class="hint nochrome" id="nochrome">The glow on YouTube needs <b>Chrome on a computer</b>. Here you can still play a video from this device.</div>
   <div class="btns">
@@ -320,6 +324,7 @@ function loadAPI() {
   const mobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Android|iPhone|iPad|Mobile/i.test(ua);
   const chromium = /Chrome\//.test(ua) && !/Edg\/|OPR\//.test(ua) && (!brands || /Chrome|Chromium/.test(brands));
   if (!chromium || mobile) document.documentElement.classList.add('not-chrome');
+  if (!mobile && /Windows/.test(ua)) document.documentElement.classList.add('is-win');
   // A Mac? Offer the Mac app, picking Apple Silicon or Intel when Chrome can tell.
   const mac = !mobile && /Macintosh|Mac OS X/.test(ua) && !(navigator.maxTouchPoints > 1);
   if (mac) {
