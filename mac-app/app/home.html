@@ -91,5 +91,11 @@ $('file').onchange = () => {
 };
 addEventListener('popstate', () => { $('vid').pause(); $('stage').classList.remove('on'); $('local').focus(); });
 </script>
+<script>
+// On Windows the shortcuts use Ctrl instead of ⌘, and F11 for full screen.
+if (!/Mac/.test(navigator.platform)) document.querySelectorAll('.hint').forEach((h) => {
+  h.innerHTML = h.innerHTML.replace(/⌃⌘F/g, 'F11').replace(/⌘⇧/g, 'Ctrl+Shift+').replace(/⌘/g, 'Ctrl+');
+});
+</script>
 </body>
 </html>

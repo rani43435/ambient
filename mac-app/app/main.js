@@ -49,7 +49,9 @@ function go(url) {
 function createWindow() {
   win = new BrowserWindow({
     width: 1280, height: 780, minWidth: 640, minHeight: 400,
-    backgroundColor: '#000000', title: 'Ambient Video', titleBarStyle: 'hiddenInset',
+    backgroundColor: '#000000', title: 'Ambient Video',
+    // Mac: content under the traffic lights. Windows: normal title bar, menu shows with Alt.
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : { autoHideMenuBar: true, icon: path.join(__dirname, 'icon.png') }),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegrationInSubFrames: true, // the glow also runs in iframe players
@@ -129,7 +131,7 @@ function togglePanel() {
 
 function menu() {
   const tpl = [
-    { role: 'appMenu' },
+    ...(process.platform === 'darwin' ? [{ role: 'appMenu' }] : [{ label: 'File', submenu: [{ role: 'quit' }] }]),
     { role: 'editMenu' },
     {
       label: 'Go', submenu: [
