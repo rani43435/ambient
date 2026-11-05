@@ -1,0 +1,30 @@
+# Builds the Mac and Windows apps and publishes them as a GitHub release,
+# so the site's "Download the Mac app / Windows app" buttons always get the latest.
+# Runs when the app changes, or by hand from the Actions tab.
+name: Release apps
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['mac-app/**', '.github/workflows/release-apps.yml']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./mac-app/build-release.sh
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(grep -o '<string>[0-9.]*</string>' mac-app/launcher/Info.plist | head -1 | sed 's/<[^>]*>//g')
+          TAG="apps-v$V"
+          NOTES="Mac: open the zip and drag Ambient Video to Applications (Apple Silicon = arm64, Intel = x64). First time: System Settings → Privacy & Security → Open Anyway.
+          Windows: unzip and run Ambient Video.exe. If Windows warns you: More info → Run anyway."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            gh release create "$TAG" dist/*.zip --title "Ambient Video apps $V" --notes "$NOTES" --latest
+          fi
