@@ -77,133 +77,153 @@
   #toast[hidden] { display: none; }
   .hint { font-size: 14px; color: var(--dim); max-width: 600px; line-height: 1.4; }
   /* ---------- Start screen (landing page) ---------- */
-  #pick { display: block; overflow-y: auto; overflow-x: hidden; background: #000; padding: 0; text-align: left; gap: 0;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  #pick { display: block; overflow-y: auto; overflow-x: clip; background: #000; padding: 0; text-align: left; gap: 0;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
   #pick[hidden], #pick [hidden] { display: none !important; }
   #pick a { color: inherit; }
-  .wrap { width: min(1120px, 100%); margin: 0 auto; padding: 0 24px; }
-  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; letter-spacing: -.01em; }
+  .wrap { width: min(1160px, 100%); margin: 0 auto; padding: 0 24px; }
+
+  /* Top bar */
+  .nav { position: sticky; top: 0; z-index: 5; background: rgba(0,0,0,.72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,.06); }
+  .nav .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; }
   .mark { width: 22px; height: 14px; border-radius: 4px; background: #000; border: 1.5px solid #fff;
     box-shadow: 0 0 10px 2px rgba(127,227,176,.7), 0 0 22px 6px rgba(124,108,255,.45); }
-  .navlinks { display: flex; gap: 22px; font-size: 14px; color: var(--dim); }
+  .navlinks { display: flex; gap: 24px; font-size: 14px; color: var(--dim); flex: 1; }
   .navlinks a { text-decoration: none; }
   .navlinks a:hover, .navlinks a:focus-visible { color: var(--fg); outline: none; }
+  .navact { display: flex; gap: 10px; }
+  #pick .nav .btn { min-height: 40px; padding: 0 16px; font-size: 14px; border-radius: 10px; }
 
-  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; padding: 56px 0 72px; }
+  /* Hero */
+  .hero { text-align: center; padding: 84px 0 40px; }
   .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent); font-weight: 500;
-    border: 1px solid rgba(127,227,176,.3); border-radius: 999px; padding: 6px 12px; background: rgba(127,227,176,.06); }
+    border: 1px solid rgba(127,227,176,.3); border-radius: 999px; padding: 6px 14px; background: rgba(127,227,176,.06); }
   .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  #pick h1 { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.035em; font-weight: 700; margin: 20px 0 18px; }
-  #pick h1 em { font-style: normal; background: linear-gradient(90deg, #7FE3B0, #7C9CFF 55%, #E58CFF);
+  #pick h1 { font-size: clamp(42px, 7.4vw, 92px); line-height: .98; letter-spacing: -.045em; font-weight: 700; margin: 24px auto 22px; max-width: 980px; }
+  #pick h1 em { font-style: normal; background: linear-gradient(90deg, #7FE3B0, #7C9CFF 50%, #E58CFF);
     -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lead { font-size: 18px; line-height: 1.55; color: var(--dim); max-width: 470px; margin: 0 0 30px; }
-  .ctas { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .lead { font-size: 19px; line-height: 1.55; color: var(--dim); max-width: 600px; margin: 0 auto 34px; }
+  .ctas { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+  .small { font-size: 13px; color: var(--dim); line-height: 1.5; }
+  .small b { color: var(--fg); font-weight: 500; }
+  #pick #nochrome { display: none; margin: 18px auto 0; max-width: 460px; }
+  html.not-chrome #pick #nochrome { display: block; }
 
-  /* Hero picture: a screen with its colours spilling into the room */
-  .show { position: relative; aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center;
-    animation: hue 24s linear infinite; }
-  .show .halo, .show .screen { position: absolute; width: 78%; aspect-ratio: 16/9;
+  /* Hero picture: a screen whose colours spill into the room */
+  .show { position: relative; width: min(900px, 100%); margin: 70px auto 0; aspect-ratio: 16/9; animation: hue 24s linear infinite; }
+  .show .halo, .show .screen { position: absolute; inset: 0;
     background: linear-gradient(120deg, #ff7a3d 0%, #ffcf5a 22%, #47d6a7 48%, #3a6dff 74%, #b14cff 100%); }
-  .show .halo { filter: blur(48px) saturate(1.4); transform: scale(1.35); opacity: .85; border-radius: 40px; }
-  .show .screen { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset; }
+  .show .halo { filter: blur(70px) saturate(1.4); transform: scale(1.12, 1.25); opacity: .8; border-radius: 60px; }
+  .show .screen { border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.14) inset, 0 40px 80px rgba(0,0,0,.6); }
   .show .screen::before { content: ""; position: absolute; inset: 0;
-    background: radial-gradient(60% 50% at 30% 70%, rgba(0,0,0,.0), rgba(0,0,0,.35)),
-                linear-gradient(180deg, transparent 55%, rgba(0,0,0,.45)); }
-  .show .screen::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 38%;
-    background: #0b0d14; clip-path: polygon(0 60%, 18% 20%, 34% 55%, 52% 5%, 70% 50%, 84% 25%, 100% 55%, 100% 100%, 0 100%); }
+    background: radial-gradient(30% 40% at 66% 34%, rgba(255,255,255,.55), transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,.5)); }
+  .show .screen::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: #0b0d14;
+    clip-path: polygon(0 58%, 12% 30%, 24% 52%, 40% 8%, 56% 48%, 68% 26%, 82% 50%, 92% 34%, 100% 46%, 100% 100%, 0 100%); }
+  .show .ui { position: absolute; left: 4%; right: 4%; bottom: 6%; z-index: 1; display: flex; align-items: center; gap: 12px; }
+  .show .ui i { width: 0; height: 0; border-left: 12px solid #fff; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .show .ui b { flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #fff 38%, rgba(255,255,255,.3) 38%); }
   @keyframes hue { to { filter: hue-rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .show { animation: none; } }
 
-  /* Buttons on the landing page */
-  #pick .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 24px;
+  /* Buttons */
+  #pick .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px;
     font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 12px; border: 1px solid #2A2D33; background: #0E0F12;
-    color: var(--fg); transition: background .15s, border-color .15s, transform .15s; }
+    color: var(--fg); transition: background .15s, border-color .15s, box-shadow .15s; white-space: nowrap; }
   #pick .btn:hover { border-color: #4A4E57; background: #16181C; }
   #pick .btn:focus { outline: none; }
-  #pick .btn:focus-visible, #pick .btn:focus { background: var(--fg); color: #000; border-color: var(--fg); }
-  #pick .btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #pick .btn:focus-visible { background: var(--fg); color: #000; border-color: var(--fg); }
+  #pick .btn svg { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
   #pick .btn.solid { background: var(--fg); color: #000; border-color: var(--fg); }
   #pick .btn.solid:hover { background: #fff; }
-  #pick .btn.primary.getext { background: var(--accent); color: #04140C; border-color: var(--accent);
-    box-shadow: 0 0 30px rgba(127,227,176,.25); }
-  #pick .btn.primary.getext:hover { box-shadow: 0 0 40px rgba(127,227,176,.4); }
+  #pick .btn.green { background: var(--accent); color: #04140C; border-color: var(--accent); box-shadow: 0 0 28px rgba(127,227,176,.22); }
+  #pick .btn.green:hover { box-shadow: 0 0 38px rgba(127,227,176,.4); }
+  #pick .btn.green:focus-visible, #pick .btn.solid:focus-visible { box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--fg); }
   #pick .btn.quiet { border-color: transparent; background: transparent; color: var(--dim); font-weight: 500; font-size: 14px; min-height: 40px; padding: 0 12px; }
   #pick .btn.quiet:hover { color: var(--fg); }
-  .small { font-size: 13px; color: var(--dim); line-height: 1.5; max-width: 440px; }
-  .small b { color: var(--fg); font-weight: 500; }
-  .small a { color: var(--accent) !important; }
-
   /* "Add to Chrome": only in Chrome on a computer, hidden once the extension is installed */
-  html[data-ambient-ext] #pick #getext, html.not-chrome #pick #getext { display: none; }
-  #pick #nochrome { display: none; }
-  html.not-chrome #pick #nochrome { display: block; }
-  /* App downloads: only on that system */
-  #pick .macdl { display: none; flex-direction: column; align-items: flex-start; gap: 8px; }
-  html.is-mac #pick #macdl, html.is-win #pick #windl { display: flex; }
+  html[data-ambient-ext] #pick .getext, html.not-chrome #pick .getext { display: none; }
+
+  /* Sections */
+  .sec { padding-top: 110px; scroll-margin-top: 60px; }
+  .sechead { text-align: center; margin-bottom: 40px; }
+  .sechead h2 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.035em; margin: 0 0 10px; font-weight: 700; }
+  .sechead p { color: var(--dim); margin: 0; font-size: 17px; }
 
   /* Watch panel */
-  .watch { position: relative; border: 1px solid #22252B; border-radius: 22px; padding: 36px; margin-bottom: 96px;
+  .watch { position: relative; border: 1px solid #22252B; border-radius: 24px; padding: 40px; max-width: 860px; margin: 0 auto;
     background: linear-gradient(180deg, #0C0D10, #060708); }
-  .watch::before { content: ""; position: absolute; inset: -1px; border-radius: 22px; padding: 1px; pointer-events: none;
-    background: linear-gradient(120deg, rgba(127,227,176,.5), transparent 30%, transparent 70%, rgba(124,156,255,.45));
+  .watch::before { content: ""; position: absolute; inset: -1px; border-radius: 24px; padding: 1px; pointer-events: none;
+    background: linear-gradient(120deg, rgba(127,227,176,.55), transparent 30%, transparent 70%, rgba(124,156,255,.5));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-  .watch h2, .sec h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 6px; font-weight: 650; }
-  .watch .sub2 { color: var(--dim); font-size: 15px; margin: 0 0 24px; }
   #pick .row { width: 100%; display: flex; gap: 10px; }
-  #pick .row input { flex: 1; min-width: 0; min-height: 54px; font: inherit; font-size: 16px; color: var(--fg); background: #000;
+  #pick .row input { flex: 1; min-width: 0; min-height: 56px; font: inherit; font-size: 16px; color: var(--fg); background: #000;
     border: 1px solid #2A2D33; border-radius: 12px; padding: 0 18px; outline: none; transition: border-color .15s, box-shadow .15s; }
   #pick .row input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(127,227,176,.12); }
-  #pick .row .btn { min-height: 54px; padding: 0 28px; }
-  #pick .row .btn#ytgo { background: var(--accent); color: #04140C; border-color: var(--accent); }
-  #pick .row .btn#ytgo:focus { background: var(--fg); border-color: var(--fg); }
+  #pick .row .btn { min-height: 56px; padding: 0 30px; }
   .srcs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
-  #recent { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  #recent { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
   #recent:empty { display: none; }
   #recent::before { content: "Recent"; width: 100%; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #6B6F77; }
   #pick #recent .btn { min-height: 36px; font-size: 13px; font-weight: 500; padding: 0 14px; border-radius: 999px; max-width: 320px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 34px; }
+    overflow: hidden; text-overflow: ellipsis; display: block; line-height: 34px; }
   #pick #connect { margin-top: 14px; }
 
-  /* Features */
-  .sec { margin-bottom: 96px; }
-  .sec > p { color: var(--dim); margin: 0 0 28px; font-size: 15px; }
+  /* Download cards */
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card { border: 1px solid #1F2227; border-radius: 18px; padding: 26px; background: #08090B; }
-  .card .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 18px;
-    background: rgba(127,227,176,.08); border: 1px solid rgba(127,227,176,.22); color: var(--accent); }
-  .card .ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .card h3 { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
-  .card p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; }
+  .card { position: relative; border: 1px solid #1F2227; border-radius: 20px; padding: 28px; background: #08090B;
+    display: flex; flex-direction: column; gap: 14px; }
+  .card.rec { border-color: rgba(127,227,176,.45); box-shadow: 0 0 0 1px rgba(127,227,176,.15), 0 20px 60px rgba(127,227,176,.06); }
+  .card.rec::after { content: "For this computer"; position: absolute; top: 20px; right: 20px; font-size: 11px; font-weight: 600;
+    color: #04140C; background: var(--accent); border-radius: 999px; padding: 4px 10px; }
+  .os { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: #121418; border: 1px solid #23262C; }
+  .os svg { width: 24px; height: 24px; fill: var(--fg); }
+  .card h3 { margin: 4px 0 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; flex: 1; }
+  .card .btns2 { display: flex; flex-direction: column; gap: 8px; }
+  .card .btns2 .btn { width: 100%; }
 
-  .faq { border-top: 1px solid #1F2227; }
-  .faq details { border-bottom: 1px solid #1F2227; padding: 18px 0; }
-  .faq summary { cursor: pointer; font-weight: 500; font-size: 16px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  /* Features */
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #1A1C20; border: 1px solid #1A1C20; border-radius: 20px; overflow: hidden; }
+  .feat { background: #050506; padding: 30px; }
+  .feat .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 18px;
+    background: rgba(127,227,176,.08); border: 1px solid rgba(127,227,176,.22); color: var(--accent); }
+  .feat .ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .feat h3 { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
+  .feat p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; }
+
+  .faq { max-width: 860px; margin: 0 auto; border-top: 1px solid #1F2227; }
+  .faq details { border-bottom: 1px solid #1F2227; padding: 20px 0; }
+  .faq summary { cursor: pointer; font-weight: 500; font-size: 17px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; color: var(--dim); font-size: 20px; line-height: 1; }
+  .faq summary::after { content: "+"; color: var(--dim); font-size: 22px; line-height: 1; }
   .faq details[open] summary::after { content: "–"; }
   .faq summary:focus-visible { outline: none; color: var(--accent); }
-  .faq details p { color: var(--dim); font-size: 14px; line-height: 1.6; margin: 12px 0 0; max-width: 720px; }
+  .faq details p { color: var(--dim); font-size: 15px; line-height: 1.6; margin: 12px 0 0; }
   .faq b { color: var(--fg); font-weight: 500; }
 
-  .foot { border-top: 1px solid #16181C; padding: 28px 0 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  .foot { margin-top: 110px; border-top: 1px solid #16181C; padding: 28px 0 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
     font-size: 13px; color: #6B6F77; }
   .foot a { text-decoration: none; }
   .foot a:hover { color: var(--fg); }
 
-  @media (max-width: 860px) {
-    .hero { grid-template-columns: 1fr; gap: 40px; padding: 28px 0 56px; }
-    .show { order: -1; }
-    .grid { grid-template-columns: 1fr; }
-    .watch { padding: 24px 20px; margin-bottom: 64px; }
-    .sec { margin-bottom: 64px; }
+  @media (max-width: 900px) {
+    .navlinks { display: none; }
+    .nav .wrap { justify-content: space-between; }
+    .hero { padding: 56px 0 24px; }
+    .show { margin-top: 48px; }
+    .grid, .feats { grid-template-columns: 1fr; }
+    .watch { padding: 26px 20px; }
+    .sec { padding-top: 80px; }
   }
-  @media (max-width: 520px) {
+  @media (max-width: 560px) {
     .wrap { padding: 0 16px; }
-    .navlinks a.hide-s { display: none; }
+    #pick .nav .btn { padding: 0 12px; font-size: 13px; }
+    #pick .nav .btn svg { display: none; }
     #pick .row { flex-direction: column; }
-    .ctas, .ctas .btn, .macdl .btn { width: 100%; }
-    #pick .macdl { width: 100%; }
+    .ctas .btn { width: 100%; }
+    .lead { font-size: 17px; }
   }
 </style>
 </head>
@@ -215,88 +235,116 @@
 </div>
 
 <div id="pick">
-  <div class="wrap">
-    <nav class="nav">
-      <div class="brand"><span class="mark"></span>Ambient Video</div>
+  <nav class="nav">
+    <div class="wrap">
+      <div class="brand"><span class="mark"></span><span class="txt">Ambient Video</span></div>
       <div class="navlinks">
         <a href="#watch">Watch</a>
-        <a href="#how" class="hide-s">How it works</a>
+        <a href="#download">Download</a>
+        <a href="#how">Help</a>
       </div>
-    </nav>
+      <div class="navact">
+        <a class="btn getext" id="getext" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M9 13.8 4.9 6.7M15 13.8l-4.1 7.1"/></svg>Add to Chrome</a>
+        <a class="btn green" id="navdl" href="#download">
+          <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download</a>
+      </div>
+    </div>
+  </nav>
 
+  <div class="wrap">
     <header class="hero">
-      <div>
-        <span class="eyebrow"><i></i>Ambilight for every screen</span>
-        <h1>Let the picture <em>spill into the room.</em></h1>
-        <p class="lead">Ambient Video reads the colours at the edge of what you watch and paints them softly around the screen — on YouTube, your own videos, and AR glasses.</p>
-        <div class="ctas">
-          <a class="btn primary getext" id="getext" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M9 13.8 4.9 6.7M15 13.8l-4.1 7.1"/></svg>Add to Chrome — it's free</a>
-          <div class="macdl" id="macdl">
-            <a class="btn solid" id="macbtn" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-arm64.zip">
-              <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download for Mac</a>
-            <div class="small">Apple Silicon · <a id="macintel" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-x64.zip">Intel Mac</a>.
-              Drag <b>Ambient Video</b> to Applications. First launch: System Settings → Privacy &amp; Security → <b>Open Anyway</b>.</div>
-          </div>
-          <div class="macdl windl" id="windl">
-            <a class="btn solid" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-windows-x64.zip">
-              <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download for Windows</a>
-            <div class="small">Unzip and run <b>Ambient Video.exe</b>. If Windows warns you: <b>More info</b> → <b>Run anyway</b>.</div>
-          </div>
-          <div class="small nochrome" id="nochrome">The glow on YouTube needs <b>Chrome on a computer</b>. Here you can still play a video from this device below.</div>
-        </div>
+      <span class="eyebrow"><i></i>Ambilight for every screen</span>
+      <h1>Let the picture <em>spill into the room.</em></h1>
+      <p class="lead">Ambient Video takes the colours at the edge of what you watch and paints them softly around the screen — on YouTube, your own videos and AR glasses.</p>
+      <div class="ctas">
+        <a class="btn green" id="herodl" href="#download"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download the app</a>
+        <a class="btn getext" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M9 13.8 4.9 6.7M15 13.8l-4.1 7.1"/></svg>Add to Chrome — free</a>
+        <a class="btn" href="#watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch in the browser</a>
       </div>
-      <div class="show" aria-hidden="true"><div class="halo"></div><div class="screen"></div></div>
+      <div class="small" id="nochrome">The glow on YouTube needs <b>Chrome on a computer</b>. You can still play a video from this device below.</div>
+      <div class="show" aria-hidden="true"><div class="halo"></div><div class="screen"></div><div class="ui"><i></i><b></b></div></div>
     </header>
 
-    <section class="watch" id="watch">
-      <h2>Start watching</h2>
-      <p class="sub2">Paste a YouTube or Vimeo link, search, or open a video file.</p>
-      <div class="row">
-        <input id="ytlink" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
-        <button class="btn primary" id="ytgo">Play</button>
+    <section class="sec" id="download">
+      <div class="sechead"><h2>Get Ambient Video</h2><p>Free for Mac, Windows and Chrome.</p></div>
+      <div class="grid">
+        <div class="card" id="cmac">
+          <div class="os"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.6zM14.1 5.6c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.3z"/></svg></div>
+          <h3>Mac</h3>
+          <p>Open the zip and drag <b style="color:var(--fg);font-weight:500">Ambient Video</b> to Applications. First launch: System Settings → Privacy &amp; Security → Open Anyway.</p>
+          <div class="btns2">
+            <a class="btn solid" id="macarm" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-arm64.zip">Apple Silicon (M1–M4)</a>
+            <a class="btn" id="macx64" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-x64.zip">Intel Mac</a>
+          </div>
+        </div>
+        <div class="card" id="cwin">
+          <div class="os"><svg viewBox="0 0 24 24"><path d="M3 5.3l7.4-1v7.2H3zM11.3 4.2L21 2.8v8.7h-9.7zM3 12.5h7.4v7.2l-7.4-1zM11.3 12.5H21v8.7l-9.7-1.4z"/></svg></div>
+          <h3>Windows</h3>
+          <p>Unzip it and run <b style="color:var(--fg);font-weight:500">Ambient Video.exe</b>. If Windows warns you, press More info → Run anyway.</p>
+          <div class="btns2">
+            <a class="btn solid" id="winx64" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-windows-x64.zip">Download for Windows</a>
+          </div>
+        </div>
+        <div class="card" id="cchrome">
+          <div class="os"><svg viewBox="0 0 24 24" style="fill:none;stroke:var(--fg);stroke-width:1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M9 13.8 4.9 6.7M15 13.8l-4.1 7.1"/></svg></div>
+          <h3>Chrome extension</h3>
+          <p>The glow appears right on youtube.com — nothing new to learn. Works on any computer with Chrome.</p>
+          <div class="btns2">
+            <a class="btn solid" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">Add to Chrome</a>
+          </div>
+        </div>
       </div>
-      <div class="srcs">
-        <button class="btn primary" id="yttv" autofocus>
-          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M10.5 9v4l3.5-2z"/></svg>YouTube TV</button>
-        <button class="btn" id="open">
-          <svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Video from this device</button>
-        <button class="btn quiet" id="share">Or share another tab</button>
+    </section>
+
+    <section class="sec" id="watch">
+      <div class="sechead"><h2>Or watch right here</h2><p>Paste a YouTube or Vimeo link, search, or open a video file.</p></div>
+      <div class="watch">
+        <div class="row">
+          <input id="ytlink" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
+          <button class="btn green" id="ytgo">Play</button>
+        </div>
+        <div class="srcs">
+          <button class="btn" id="yttv">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M10.5 9v4l3.5-2z"/></svg>YouTube TV</button>
+          <button class="btn" id="open">
+            <svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Video from this device</button>
+          <button class="btn quiet" id="share">Or share another tab</button>
+        </div>
+        <div id="recent"></div>
+        <button class="btn green" id="connect" hidden>Connect glow to the video tab</button>
       </div>
-      <div id="recent"></div>
-      <button class="btn primary" id="connect" hidden>Connect glow to the video tab</button>
     </section>
 
     <section class="sec">
-      <h2>One glow, everywhere you watch</h2>
-      <p>Same effect on the web, your desktop and your glasses.</p>
-      <div class="grid">
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg></div>
-          <h3>Chrome extension</h3><p>The glow appears right on youtube.com — no new player, nothing to learn.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
-          <h3>Mac &amp; Windows app</h3><p>YouTube TV and your own files in a clean full-screen window with a Home button.</p></div>
-        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 10h20M4 10l1.5 6a2 2 0 0 0 2 1.5H9a2 2 0 0 0 2-1.6L11.5 13h1l.5 2.9a2 2 0 0 0 2 1.6h1.5a2 2 0 0 0 2-1.5L20 10"/></svg></div>
-          <h3>AR glasses</h3><p>On RayNeo, black is see-through — only the video and its light float in front of you.</p></div>
+      <div class="sechead"><h2>Made to disappear</h2><p>Just the picture and its light.</p></div>
+      <div class="feats">
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Smooth, never flickers</h3><p>Colours ease from frame to frame, so the light moves like the scene — calm in dark films, alive in bright ones.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg></div>
+          <h3>Your size, your glow</h3><p>Change the picture size and how strong the glow is while you watch.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 10h20M4 10l1.5 6a2 2 0 0 0 2 1.5H9a2 2 0 0 0 2-1.6L11.5 13h1l.5 2.9a2 2 0 0 0 2 1.6h1.5a2 2 0 0 0 2-1.5L20 10"/></svg></div>
+          <h3>Built for AR glasses</h3><p>On RayNeo, black is see-through — only the video and its light float in front of you.</p></div>
       </div>
     </section>
 
     <section class="sec" id="how">
-      <h2>How it works</h2>
-      <p>A few things worth knowing.</p>
+      <div class="sechead"><h2>Questions</h2></div>
       <div class="faq">
         <details><summary>How does YouTube TV sign in?</summary>
-          <p>It shows a code — open <b>yt.be/activate</b> on your phone and type it in. YouTube TV here needs the Ambient Video Chrome extension.</p></details>
+          <p>It shows a code — open <b>yt.be/activate</b> on your phone and type it in. In the browser, YouTube TV needs the Chrome extension.</p></details>
         <details><summary>Which links can I play?</summary>
-          <p><b>YouTube</b> and <b>Vimeo</b> play right here with the glow (Chrome on a computer will ask to share <b>this tab</b>). Any other link — Plex, archive.org… — opens in a new tab, then press <b>Connect glow</b>.</p></details>
+          <p><b>YouTube</b> and <b>Vimeo</b> play right here with the glow (Chrome will ask to share <b>this tab</b>). Any other link — Plex, archive.org… — opens in a new tab, then press <b>Connect glow</b>.</p></details>
         <details><summary>Does it work with Netflix or HBO?</summary>
           <p>No. Protected services block other pages from reading their picture, so the glow can't see the colours.</p></details>
         <details><summary>Is my data collected?</summary>
-          <p>No. Everything runs in your browser; recent links stay on your device. Read the <a href="privacy.html" style="color:var(--accent)">privacy policy</a>.</p></details>
+          <p>No. Everything runs on your device; recent links stay on your device. Read the <a href="privacy.html" style="color:var(--accent)">privacy policy</a>.</p></details>
       </div>
     </section>
 
     <footer class="foot">
-      <span>© 2026 Ambient Video · Rani Marjy</span>
+      <span>© 2026 Ambient Video</span>
       <span><a href="privacy.html">Privacy</a></span>
     </footer>
   </div>
@@ -492,19 +540,20 @@ function loadAPI() {
   const chromium = /Chrome\//.test(ua) && !/Edg\/|OPR\//.test(ua) && (!brands || /Chrome|Chromium/.test(brands));
   if (!chromium || mobile) document.documentElement.classList.add('not-chrome');
   if (!mobile && /Windows/.test(ua)) document.documentElement.classList.add('is-win');
-  // A Mac? Offer the Mac app, picking Apple Silicon or Intel when Chrome can tell.
+  // Point the Download buttons at the right file for this computer, and mark its card.
   const mac = !mobile && /Macintosh|Mac OS X/.test(ua) && !(navigator.maxTouchPoints > 1);
+  const win = !mobile && /Windows/.test(ua);
+  const setDl = (id, card) => { const h = document.getElementById(id).href;
+    ['navdl', 'herodl'].forEach((b) => (document.getElementById(b).href = h)); document.getElementById(card).classList.add('rec'); };
+  if (win) setDl('winx64', 'cwin');
   if (mac) {
-    document.documentElement.classList.add('is-mac');
+    document.documentElement.classList.add('is-mac'); setDl('macarm', 'cmac');
     const uad = navigator.userAgentData;
     if (uad && uad.getHighEntropyValues) uad.getHighEntropyValues(['architecture']).then((v) => {
-      if (v.architecture === 'x86') {
-        const b = document.getElementById('macbtn'), i = document.getElementById('macintel');
-        const arm = b.href; b.href = i.href; i.href = arm; i.textContent = 'Apple Silicon Mac';
-        b.nextElementSibling.firstChild.textContent = 'Intel Mac · ';
-      }
+      if (v.architecture === 'x86') setDl('macx64', 'cmac');
     }).catch(() => {});
   }
+  if (!mac && !win && !mobile) document.getElementById('cchrome').classList.add('rec');
 })();
 // Recent links, like the app (kept on this device only)
 function getRecent() { try { return JSON.parse(localStorage.getItem('recent') || '[]'); } catch (e) { return []; } }
@@ -566,8 +615,8 @@ async function playYT() {
   wake();
 }
 $('ytgo').onclick = playYT;
-// Phones: autofocus would scroll the landing page down to the buttons.
-if (matchMedia('(hover: none) and (pointer: coarse)').matches) { document.activeElement && document.activeElement.blur(); $('pick').scrollTop = 0; }
+// Remote control / keyboard: start on YouTube TV, but keep the page at the top. Phones: no focus.
+if (!matchMedia('(hover: none) and (pointer: coarse)').matches) $('yttv').focus({ preventScroll: true });
 $('yttv').onclick = () => { location.href = 'https://www.youtube.com/tv'; };
 // Old way: share a YouTube tab. Real full screen works here, but you control the video in that tab.
 $('connect').onclick = () => { $('connect').hidden = true; $('share').onclick(); };
