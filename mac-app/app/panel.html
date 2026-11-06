@@ -1,46 +1,92 @@
 <!doctype html>
 <html><head><meta charset="utf-8">
 <style>
+  :root { --fg: #F2F2EF; --dim: rgba(242,242,239,.6); --faint: rgba(242,242,239,.4); --mint: #7FE3B0; --blue: #7C9CFF;
+    --ui: "SF Pro Text", -apple-system, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  * { box-sizing: border-box; }
   html, body { margin: 0; background: transparent; overflow: hidden; }
-  body { font: 500 15px/1.2 -apple-system, system-ui, sans-serif; color: #F2F2EF; }
-  .box { margin: 6px; padding: 18px 20px; background: rgba(20,21,24,.96); border: 1px solid #34373D; border-radius: 16px;
-    display: flex; flex-direction: column; gap: 14px; }
-  label { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-  input[type=range] { width: 170px; accent-color: #7FE3B0; }
-  input[type=checkbox] { accent-color: #7FE3B0; width: 18px; height: 18px; }
-  input:focus-visible { outline: 2px solid #7FE3B0; outline-offset: 3px; }
-  #home { font: inherit; font-weight: 600; color: #F2F2EF; background: transparent; border: 1.5px solid #34373D; border-radius: 999px; padding: 9px 16px; cursor: pointer; text-align: left; }
-  #home:hover, #home:focus-visible { border-color: #7FE3B0; color: #7FE3B0; outline: none; }
-  .hint { font-size: 12px; color: #9A9DA4; }
+  body { font: 500 13px/1.2 var(--ui); color: var(--fg); -webkit-font-smoothing: antialiased; }
+  .box { position: relative; margin: 8px; padding: 16px; border-radius: 20px; overflow: hidden;
+    background: rgba(14,15,19,.97); box-shadow: 0 20px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    display: flex; flex-direction: column; gap: 12px; animation: pop .22s cubic-bezier(.2,.9,.3,1.2) both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+  .box::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+    background: linear-gradient(120deg, rgba(127,227,176,.6), rgba(255,255,255,.08) 35%, rgba(255,255,255,.08) 65%, rgba(124,156,255,.55));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .box::after { content: ""; position: absolute; left: -30%; right: -30%; top: -60%; height: 120%; pointer-events: none; z-index: -1;
+    background: radial-gradient(50% 50% at 30% 50%, rgba(127,227,176,.16), transparent 70%), radial-gradient(50% 50% at 75% 50%, rgba(124,156,255,.16), transparent 70%);
+    opacity: var(--g, 1); transition: opacity .4s; }
+  .box > * { position: relative; }
+  .head { display: flex; align-items: center; justify-content: space-between; }
+  .title { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; }
+  .logo { width: 20px; height: 14px; border-radius: 4px; border: 1.6px solid var(--fg); box-shadow: 0 0 12px rgba(127,227,176,.8), 0 0 22px rgba(124,156,255,.5); transition: box-shadow .3s; }
+  body.off .logo { box-shadow: none; }
+
+  .switch { position: relative; cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; }
+  .switch .t { display: block; width: 40px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.14); transition: background .25s, box-shadow .25s; position: relative; }
+  .switch .t::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .25s cubic-bezier(.3,1.4,.5,1); }
+  .switch input:checked + .t { background: var(--mint); box-shadow: 0 0 14px rgba(127,227,176,.5); }
+  .switch input:checked + .t::after { transform: translateX(16px); background: #062016; }
+  .switch input:focus-visible + .t { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+  .ctl { padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); transition: opacity .3s; }
+  body.off .ctl.amount { opacity: .45; }
+  .ctl .top { display: flex; justify-content: space-between; color: var(--dim); font-size: 12px; margin-bottom: 8px; }
+  .ctl output { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 20px; background: transparent; cursor: pointer; margin: 0; }
+  input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--mint), var(--blue) var(--p, 50%), rgba(255,255,255,.14) var(--p, 50%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 0 4px rgba(127,227,176,.18), 0 2px 6px rgba(0,0,0,.5); }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(242,242,239,.6); }
+
+  #home { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 38px; border-radius: 12px; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--fg); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); transition: background .2s, border-color .2s; }
+  #home:hover { background: rgba(255,255,255,.11); }
+  #home:focus-visible { outline: none; border-color: var(--fg); }
+  #home svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .hint { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 11px; color: var(--faint); }
+  .hint span { display: inline-flex; align-items: center; gap: 3px; }
+  kbd { font: 600 10px var(--ui); color: var(--dim); min-width: 18px; height: 18px; padding: 0 4px; display: inline-grid; place-items: center;
+    border-radius: 5px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-bottom-width: 2px; }
 </style></head>
 <body>
   <div class="box">
-    <button id="home">⌂&nbsp; Home</button>
-    <label>Ambient glow <input type="checkbox" id="on"></label>
-    <label>Strength <input type="range" id="amount" min="0" max="100" step="5"></label>
-    <label>Video size <input type="range" id="size" min="50" max="100" step="5"></label>
-    <div class="hint">⌘G glow on/off · ⌘⇧H home · ⌘, this panel · Esc to close</div>
+    <div class="head">
+      <div class="title"><span class="logo"></span>Ambient glow</div>
+      <label class="switch" title="Glow on/off"><input type="checkbox" id="on" aria-label="Ambient glow"><span class="t"></span></label>
+    </div>
+    <div class="ctl amount"><div class="top"><span>Strength</span><output id="amountv"></output></div>
+      <input type="range" id="amount" min="0" max="100" step="5" aria-label="Strength"></div>
+    <div class="ctl"><div class="top"><span>Video size</span><output id="sizev"></output></div>
+      <input type="range" id="size" min="50" max="100" step="5" aria-label="Video size"></div>
+    <button id="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg>Home</button>
+    <div class="hint" id="hint"><span><kbd>⌘</kbd><kbd>G</kbd> glow</span><span><kbd>⌘</kbd><kbd>⇧</kbd><kbd>H</kbd> home</span><span><kbd>esc</kbd> close</span></div>
   </div>
 <script>
   const $ = (id) => document.getElementById(id);
   let first = true; // the first update always fills every control
+  function fill(r) { r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); $(r.id + 'v').textContent = r.value + '%'; }
+  function look(c) { document.body.classList.toggle('off', !c.on); document.querySelector('.box').style.setProperty('--g', c.on ? c.amount / 100 : 0); }
   glow.onCfg((c) => {
     $('on').checked = c.on;
     if (first || document.activeElement !== $('amount')) $('amount').value = c.amount;
     if (first || document.activeElement !== $('size')) $('size').value = c.size;
+    fill($('amount')); fill($('size')); look(c);
     first = false;
   });
   $('home').onclick = () => glow.home();
-  $('on').onchange = (e) => glow.set({ on: e.target.checked });
-  $('amount').oninput = (e) => glow.set({ amount: +e.target.value });
-  $('size').oninput = (e) => glow.set({ size: +e.target.value });
+  $('on').onchange = (e) => { glow.set({ on: e.target.checked }); };
+  $('amount').oninput = (e) => { fill(e.target); glow.set({ amount: +e.target.value }); };
+  $('size').oninput = (e) => { fill(e.target); glow.set({ size: +e.target.value }); };
   addEventListener('keydown', (e) => { if (e.key === 'Escape') glow.close(); });
   addEventListener('load', () => $('amount').focus());
 </script>
 <script>
-// On Windows the shortcuts use Ctrl instead of ⌘, and F11 for full screen.
-if (!/Mac/.test(navigator.platform)) document.querySelectorAll('.hint').forEach((h) => {
-  h.innerHTML = h.innerHTML.replace(/⌃⌘F/g, 'F11').replace(/⌘⇧/g, 'Ctrl+Shift+').replace(/⌘/g, 'Ctrl+');
-});
+// On Windows the shortcuts use Ctrl instead of ⌘.
+if (!/Mac/.test(navigator.platform)) document.getElementById('hint').innerHTML =
+  '<span><kbd>Ctrl</kbd><kbd>G</kbd> glow</span><span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>H</kbd> home</span><span><kbd>Esc</kbd> close</span>';
 </script>
 </body></html>

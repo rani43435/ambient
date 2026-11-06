@@ -112,7 +112,7 @@ function showHome(on) {
 function placePanel() {
   if (!panel || panel.isDestroyed() || !win) return;
   const b = win.getContentBounds();
-  panel.setBounds({ x: b.x + 24, y: b.y + 40, width: 340, height: 300 });
+  panel.setBounds({ x: b.x + 24, y: b.y + 40, width: 320, height: 330 });
 }
 function togglePanel() {
   if (panel && !panel.isDestroyed()) {

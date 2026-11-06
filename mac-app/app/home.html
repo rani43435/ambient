@@ -5,56 +5,274 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ambient Video</title>
 <style>
-  /* On the glasses black is see-through, so only the controls and the video show. */
-  :root { --fg: #F2F2EF; --dim: #9A9DA4; --line: #34373D; --accent: #7FE3B0; }
+  :root {
+    --fg: #F2F2EF; --dim: rgba(242,242,239,.6); --faint: rgba(242,242,239,.38);
+    --mint: #7FE3B0; --blue: #7C9CFF; --pink: #E2A2FF;
+    --glass: rgba(14,15,19,.58); --edge: rgba(255,255,255,.1);
+    --glow: 1;   /* glow strength 0..1, set from the settings */
+    --size: .8;  /* video size 0.5..1 */
+    --ui: "SF Pro Text", -apple-system, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --display: "SF Pro Display", -apple-system, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: #000; color: var(--fg); font-family: system-ui, Roboto, sans-serif; }
-  #home { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
-  .title { font-size: 34px; font-weight: 600; }
-  .sub { font-size: 17px; color: var(--dim); }
-  .row { display: flex; gap: 10px; width: min(680px, 92vw); }
-  .row input { flex: 1; min-width: 0; font: inherit; font-size: 17px; color: var(--fg); background: #111; border: 1.5px solid var(--line);
-    border-radius: 999px; padding: 0 18px; min-height: 48px; outline: none; }
-  .row input:focus { border-color: var(--accent); }
-  .btn { font: inherit; font-size: 17px; font-weight: 600; color: var(--fg); background: transparent; border: 1.5px solid var(--line);
-    border-radius: 999px; min-height: 48px; padding: 0 22px; cursor: pointer; white-space: nowrap; }
-  .btn.primary { border-color: var(--accent); color: var(--accent); }
-  .btn:focus { outline: none; background: var(--fg); color: #000; border-color: var(--fg); }
-  .btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  #recent { display: flex; flex-direction: column; gap: 8px; width: min(680px, 92vw); }
-  #recent .btn { font-weight: 500; font-size: 15px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
-  .hint { font-size: 14px; color: var(--dim); max-width: 600px; line-height: 1.4; }
+  html, body { margin: 0; height: 100%; background: #050507; color: var(--fg); font-family: var(--ui); -webkit-font-smoothing: antialiased; overflow: hidden; }
+  button, input { font: inherit; color: inherit; }
+  svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- The room: soft light from the film fills the whole window ---------- */
+  .room { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .room .light { position: absolute; inset: -20%; opacity: calc(.15 + .85 * var(--glow)); transition: opacity .6s;
+    filter: blur(90px) saturate(1.25); }
+  body.off .room .light { opacity: .06; }
+  .room::after { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 50% 40%, transparent 35%, rgba(0,0,0,.72)), linear-gradient(180deg, rgba(0,0,0,.45), transparent 18%, transparent 80%, rgba(0,0,0,.5)); }
+  .grain { position: fixed; inset: 0; pointer-events: none; opacity: .06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* The film: four scenes that cross-fade, used for the preview screen and (blurred) the room */
+  .film { position: absolute; inset: 0; overflow: hidden; background: #000; }
+  .film i { position: absolute; inset: 0; opacity: 0; animation: scene 28s linear infinite; }
+  .film i:nth-child(2) { animation-delay: -21s; } .film i:nth-child(3) { animation-delay: -14s; } .film i:nth-child(4) { animation-delay: -7s; }
+  .film i:nth-child(1) { animation-delay: 0s; }
+  @keyframes scene { 0% { opacity: 0; } 4% { opacity: 1; } 25% { opacity: 1; } 29% { opacity: 0; } 100% { opacity: 0; } }
+  .sunset { background:
+    radial-gradient(9% 16% at 62% 52%, #FFE3A8 0 60%, rgba(255,200,120,.0) 100%),
+    radial-gradient(40% 30% at 62% 60%, rgba(255,140,60,.75), transparent 70%),
+    linear-gradient(180deg, #3C1A6E 0%, #7A2C83 26%, #E2694A 50%, #FFC266 59%, #8A3A2E 60%, #3A1838 78%, #140B26 100%); }
+  .aurora { background:
+    radial-gradient(60% 14% at 35% 38%, rgba(80,255,170,.85), transparent 70%),
+    radial-gradient(45% 12% at 70% 30%, rgba(160,110,255,.8), transparent 70%),
+    radial-gradient(70% 22% at 55% 46%, rgba(40,200,150,.45), transparent 70%),
+    radial-gradient(120% 40% at 50% 115%, #010208 60%, transparent 61%),
+    linear-gradient(180deg, #040A1E, #0A1A36 70%, #050914); }
+  .city { background:
+    repeating-linear-gradient(90deg, transparent 0 7%, rgba(0,0,0,.0) 7% 8%),
+    linear-gradient(0deg, #0B0620 0 22%, transparent 22%),
+    linear-gradient(90deg, #08041A 0 9%, transparent 9% 13%, #08041A 13% 24%, transparent 24% 30%, #08041A 30% 44%, transparent 44% 52%, #08041A 52% 66%, transparent 66% 71%, #08041A 71% 86%, transparent 86% 90%, #08041A 90%) bottom / 100% 62% no-repeat,
+    radial-gradient(50% 30% at 30% 85%, rgba(60,220,255,.5), transparent 70%),
+    linear-gradient(180deg, #170838 0%, #5A1660 45%, #E0368A 80%, #FF6AA8 100%); }
+  .sea { background:
+    linear-gradient(105deg, transparent 20%, rgba(180,255,240,.28) 24%, transparent 28%, transparent 45%, rgba(180,255,240,.22) 49%, transparent 53%, transparent 70%, rgba(180,255,240,.2) 73%, transparent 76%),
+    radial-gradient(80% 50% at 50% 0%, rgba(120,240,230,.7), transparent 70%),
+    linear-gradient(180deg, #2BB3B5 0%, #0E6E80 45%, #053244 80%, #01131C 100%); }
+  @media (prefers-reduced-motion: reduce) { .film i { animation: none; } .film i.sunset { opacity: 1; } }
+
+  /* ---------- Title bar (drag area) ---------- */
+  .bar { position: fixed; z-index: 5; top: 0; left: 0; right: 0; height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+    -webkit-app-region: drag; }
+  .mac .bar { padding-left: 88px; }
+  .bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; letter-spacing: -.01em; }
+  .bar .logo { width: 22px; height: 15px; border-radius: 4px; border: 1.6px solid var(--fg);
+    box-shadow: 0 0 calc(14px * var(--glow)) rgba(127,227,176,.9), 0 0 calc(26px * var(--glow)) rgba(124,156,255,.6); transition: box-shadow .4s; }
+  body.off .bar .logo { box-shadow: none; }
+  .bar .sp { flex: 1; }
+  .bar button, .bar label { -webkit-app-region: no-drag; }
+
+  /* Pill switch */
+  .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--dim);
+    padding: 6px 6px 6px 14px; border-radius: 999px; background: rgba(0,0,0,.35); border: 1px solid var(--edge); }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .switch .t { position: relative; width: 38px; height: 22px; border-radius: 999px; background: rgba(255,255,255,.14); transition: background .25s; }
+  .switch .t::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .25s cubic-bezier(.3,1.4,.5,1); }
+  .switch input:checked + .t { background: var(--mint); box-shadow: 0 0 14px rgba(127,227,176,.55); }
+  .switch input:checked + .t::after { transform: translateX(16px); background: #062016; }
+  .switch input:focus-visible + .t { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+  /* ---------- Layout ---------- */
+  main { position: fixed; z-index: 1; top: 56px; left: 0; right: 0; bottom: 0; overflow: auto; display: grid; place-items: center; padding: 16px 40px 64px; }
+  .grid { width: min(1180px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.75);
+    border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 6px 13px 6px 10px; background: rgba(0,0,0,.35); }
+  .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  h1 { font-family: var(--display); font-size: clamp(36px, 4.6vw, 64px); line-height: .98; letter-spacing: -.045em; font-weight: 650; margin: 18px 0 14px; }
+  h1 em { font-style: normal; background: linear-gradient(100deg, #9FF0C6 0%, #7C9CFF 45%, #E2A2FF 80%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 200% 100%; animation: sheen 9s ease-in-out infinite alternate; }
+  @keyframes sheen { to { background-position: 100% 0; } }
+  .lead { font-size: 15px; line-height: 1.55; color: var(--dim); margin: 0 0 24px; max-width: 440px; }
+
+  /* Glass box with the search + sources */
+  .glass { position: relative; border-radius: 22px; padding: 12px; background: var(--glass); border: 1px solid var(--edge);
+    -webkit-backdrop-filter: blur(26px) saturate(1.3); backdrop-filter: blur(26px) saturate(1.3);
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+  .glass::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+    background: linear-gradient(120deg, rgba(127,227,176,.6), transparent 35%, transparent 65%, rgba(124,156,255,.55));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .search { display: flex; gap: 8px; }
+  .search .field { flex: 1; min-width: 0; position: relative; }
+  .search .field svg { position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--faint); }
+  .search input { width: 100%; min-height: 52px; font-size: 15px; background: rgba(0,0,0,.5); border: 1px solid var(--edge); border-radius: 14px;
+    padding: 0 16px 0 44px; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .search input::placeholder { color: rgba(242,242,239,.4); }
+  .search input:focus { border-color: rgba(127,227,176,.8); box-shadow: 0 0 0 4px rgba(127,227,176,.14); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 12px; cursor: pointer;
+    font-size: 14px; font-weight: 600; background: rgba(255,255,255,.06); border: 1px solid var(--edge); transition: background .2s, border-color .2s, transform .15s, box-shadow .2s; white-space: nowrap; }
+  .btn:hover { background: rgba(255,255,255,.11); border-color: rgba(255,255,255,.2); }
+  .btn:active { transform: scale(.97); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--fg); }
+  .btn.green { background: var(--mint); color: #05140D; border-color: transparent; box-shadow: 0 8px 30px rgba(127,227,176,.32); min-height: 52px; padding: 0 26px; border-radius: 14px; }
+  .btn.green:hover { background: #95EBC0; }
+
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+  .tile { text-align: left; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; cursor: pointer;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); transition: background .2s, border-color .2s, transform .2s; }
+  .tile:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); transform: translateY(-2px); }
+  .tile:focus-visible { outline: none; border-color: var(--fg); }
+  .tile .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+  .tile .ic svg { width: 18px; height: 18px; }
+  .tile b { font-size: 14px; font-weight: 600; }
+  .tile span { font-size: 12px; color: var(--faint); line-height: 1.35; }
+  .tile.a .ic { background: rgba(127,227,176,.14); color: var(--mint); }
+  .tile.b .ic { background: rgba(124,156,255,.16); color: var(--blue); }
+  .tile.c .ic { background: rgba(226,162,255,.15); color: var(--pink); }
+
+  #recent { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding: 0 2px 2px; }
+  #recent:empty { display: none; }
+  #recent::before { content: "Recent"; width: 100%; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--faint); margin-bottom: 2px; }
+  #recent .btn { min-height: 30px; font-size: 12.5px; font-weight: 500; padding: 0 12px; border-radius: 999px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 28px; }
+
+  /* ---------- Preview: the screen and its glow, live with the settings ---------- */
+  .preview { position: relative; }
+  .stagebox { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; }
+  .screen { position: relative; width: calc(100% * var(--size)); aspect-ratio: 16 / 9; transition: width .35s cubic-bezier(.2,.8,.2,1); }
+  .screen .halo { position: absolute; inset: -18%; opacity: var(--glow); transition: opacity .5s; filter: blur(40px) saturate(1.6) brightness(1.15); }
+  .screen .halo .film { inset: 14%; border-radius: 30px; }
+  body.off .screen .halo { opacity: 0; }
+  .screen .pic { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.14), 0 20px 50px rgba(0,0,0,.5); }
+  .screen .pic .film { border-radius: inherit; }
+  .reflect { position: absolute; left: 50%; bottom: -2%; width: calc(90% * var(--size)); height: 16%; transform: translateX(-50%); opacity: calc(.45 * var(--glow));
+    filter: blur(30px) saturate(1.3); transition: opacity .5s, width .35s; }
+  body.off .reflect { opacity: 0; }
+
+  .controls { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ctl { padding: 14px 16px; border-radius: 16px; background: rgba(10,11,14,.5); border: 1px solid rgba(255,255,255,.08);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+  .ctl .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 10px; }
+  .ctl .top output { color: var(--fg); font-variant-numeric: tabular-nums; font-weight: 600; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; margin: 0; }
+  input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--mint), var(--blue) var(--p, 50%), rgba(255,255,255,.14) var(--p, 50%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 0 4px rgba(127,227,176,.18), 0 2px 8px rgba(0,0,0,.5); }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(242,242,239,.6); }
+  body.off .ctl.amount { opacity: .45; }
+
+  /* Shortcuts footer */
+  .keys { position: fixed; z-index: 2; left: 0; right: 0; bottom: 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px;
+    font-size: 12px; color: var(--faint); pointer-events: none; }
+  .keys span { display: inline-flex; align-items: center; gap: 6px; }
+  kbd { font: 600 11px var(--ui); color: var(--dim); min-width: 22px; height: 22px; padding: 0 6px; display: inline-grid; place-items: center;
+    border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-bottom-width: 2px; }
+  .note { margin: 14px 4px 0; font-size: 12px; color: var(--faint); line-height: 1.5; max-width: 480px; }
+
+  /* Entrance */
+  .in { animation: rise .8s cubic-bezier(.2,.8,.2,1) both; }
+  .in.d1 { animation-delay: .06s; } .in.d2 { animation-delay: .14s; } .in.d3 { animation-delay: .22s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  @media (prefers-reduced-motion: reduce) { .in, h1 em, .eyebrow i { animation: none; } }
+
+  /* Narrow window: one column, small preview on top */
+  @media (max-width: 900px) {
+    main { padding: 12px 22px 60px; }
+    .grid { grid-template-columns: 1fr; gap: 28px; max-width: 560px; }
+    .preview { display: none; }
+    .tiles { grid-template-columns: 1fr; }
+    .tile { flex-direction: row; align-items: center; }
+    .tile span { display: none; }
+  }
+  @media (max-height: 560px) { .keys { display: none; } }
+
+  /* ---------- Local video player ---------- */
   #file { display: none; }
-  #stage { position: fixed; inset: 0; background: #000; display: none; align-items: center; justify-content: center; }
+  #stage { position: fixed; z-index: 10; inset: 0; background: #000; display: none; align-items: center; justify-content: center; }
   #stage.on { display: flex; }
   #player { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
   #player video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #back { position: fixed; z-index: 11; top: 14px; left: 18px; opacity: 0; transition: opacity .3s; background: rgba(14,15,19,.7);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-radius: 999px; min-height: 38px; font-size: 13px; }
+  .mac #back { left: 88px; }
+  #stage.on.ui #back, #back:focus-visible { opacity: 1; }
+  #back svg { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
-<div id="home">
-  <div class="title">Ambient Video</div>
-  <div class="sub">YouTube or any video site — with the glow around the picture</div>
-  <div class="btns">
-    <button class="btn primary" id="yttv" autofocus>YouTube TV</button>
-    <button class="btn" id="local">Video from this device</button>
+<div class="room" aria-hidden="true"><div class="light"><div class="film"><i class="sunset"></i><i class="aurora"></i><i class="city"></i><i class="sea"></i></div></div></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <div class="brand"><span class="logo"></span>Ambient Video</div>
+  <div class="sp"></div>
+  <label class="switch" title="Glow on/off (⌘G)">Glow<input type="checkbox" id="gon"><span class="t"></span></label>
+</header>
+
+<main id="home">
+  <div class="grid">
+    <section>
+      <span class="eyebrow in"><i></i>Ambilight for every screen</span>
+      <h1 class="in d1">What are we <em>watching tonight?</em></h1>
+      <p class="lead in d1">Pick something and the edges of the picture spill softly into the room around it.</p>
+
+      <div class="glass in d2">
+        <div class="search">
+          <div class="field">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+            <input id="link" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
+          </div>
+          <button class="btn green" id="go">Play</button>
+        </div>
+        <div class="tiles">
+          <button class="tile a" id="yttv" autofocus>
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M10.5 9v4l3.5-2z"/></svg></span>
+            <b>YouTube TV</b><span>Sign in with your phone</span></button>
+          <button class="tile b" id="local">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></span>
+            <b id="localname">From this Mac</b><span>Your own video files</span></button>
+          <button class="tile c" id="anylink">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
+            <b>Any site</b><span>Plex, Vimeo, archive.org…</span></button>
+        </div>
+        <div id="recent"></div>
+      </div>
+      <p class="note in d3">Netflix, HBO and other protected services can't play here: they block the picture from being read.</p>
+    </section>
+
+    <aside class="preview in d2" aria-label="Glow preview">
+      <div class="stagebox">
+        <div class="reflect"><div class="film"><i class="sunset"></i><i class="aurora"></i><i class="city"></i><i class="sea"></i></div></div>
+        <div class="screen">
+          <div class="halo"><div class="film"><i class="sunset"></i><i class="aurora"></i><i class="city"></i><i class="sea"></i></div></div>
+          <div class="pic"><div class="film"><i class="sunset"></i><i class="aurora"></i><i class="city"></i><i class="sea"></i></div></div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="ctl amount"><div class="top"><span>Glow strength</span><output id="amountv">100%</output></div>
+          <input type="range" id="amount" min="0" max="100" step="5" aria-label="Glow strength"></div>
+        <div class="ctl"><div class="top"><span>Video size</span><output id="sizev">80%</output></div>
+          <input type="range" id="size" min="50" max="100" step="5" aria-label="Video size"></div>
+      </div>
+    </aside>
   </div>
-  <div class="row">
-    <input id="link" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
-    <button class="btn primary" id="go">Go</button>
-  </div>
-  <div id="recent"></div>
-  <div class="hint"><b>YouTube TV</b>: sign in with your phone (it shows a code for yt.be/activate). Arrows, Enter and Esc move around it.<br>
-    Paste any link (Plex, Vimeo, archive.org…) to open it here with the glow. Glow settings: the round button on the video, or ⌘,  ·  ⌘G glow on/off  ·  ⌘⇧H home  ·  ⌃⌘F full screen.<br>
-    Netflix, HBO and other protected services can't play here.</div>
+</main>
+
+<div class="keys" id="keys">
+  <span><kbd>⌘</kbd><kbd>G</kbd> glow</span>
+  <span><kbd>⌘</kbd><kbd>,</kbd> glow settings</span>
+  <span><kbd>⌘</kbd><kbd>⇧</kbd><kbd>H</kbd> home</span>
+  <span><kbd>⌘</kbd><kbd>[</kbd> back</span>
+  <span><kbd>⌃</kbd><kbd>⌘</kbd><kbd>F</kbd> full screen</span>
 </div>
 
 <div id="stage"><div id="player"><video id="vid" controls playsinline></video></div></div>
+<button class="btn" id="back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Home</button>
 <input type="file" id="file" accept="video/*">
 
 <script src="ambient.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
+const isMac = /Mac/.test(navigator.platform);
+document.documentElement.classList.toggle('mac', isMac);
+
 function getRecent() { try { return JSON.parse(localStorage.getItem('recent') || '[]'); } catch (e) { return []; } }
 function addRecent(u) {
   const r = getRecent().filter((x) => x !== u); r.unshift(u);
@@ -73,13 +291,38 @@ function go(text) {
 $('yttv').onclick = () => (location.href = 'https://www.youtube.com/tv');
 $('go').onclick = () => go($('link').value);
 $('link').onkeydown = (e) => { if (e.key === 'Enter') go($('link').value); };
+$('anylink').onclick = () => { $('link').focus(); $('link').placeholder = 'Paste a link: plex.tv, vimeo.com, archive.org…'; };
 for (const u of getRecent()) {
   const b = document.createElement('button'); b.className = 'btn'; b.textContent = u.replace(/^https?:\/\/(www\.|m\.)?/, '');
-  b.onclick = () => go(u); $('recent').appendChild(b);
+  b.title = u; b.onclick = () => go(u); $('recent').appendChild(b);
 }
 
-// Local video: plays here, full screen, and the glow attaches to it like on any site.
-let url = null;
+// ---- Glow settings, shared with the whole app (and live in the preview) ----
+const bridge = window.AmbientBridge;
+let cfg = { on: true, amount: 100, size: 80 };
+try { if (bridge) cfg = { ...cfg, ...JSON.parse(bridge.get()) }; } catch (e) {}
+function paint() {
+  document.body.classList.toggle('off', !cfg.on);
+  document.documentElement.style.setProperty('--glow', (cfg.amount / 100).toFixed(2));
+  document.documentElement.style.setProperty('--size', (cfg.size / 100).toFixed(2));
+  $('gon').checked = cfg.on;
+  if (document.activeElement !== $('amount')) $('amount').value = cfg.amount;
+  if (document.activeElement !== $('size')) $('size').value = cfg.size;
+  $('amountv').textContent = cfg.amount + '%'; $('sizev').textContent = cfg.size + '%';
+  for (const r of [$('amount'), $('size')]) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
+}
+function set(part) { cfg = { ...cfg, ...part }; paint(); if (bridge) bridge.set(JSON.stringify(part)); }
+$('gon').onchange = (e) => set({ on: e.target.checked });
+$('amount').oninput = (e) => set({ amount: +e.target.value });
+$('size').oninput = (e) => set({ size: +e.target.value });
+// ⌘G or the panel may change the settings: follow them when the window comes back into focus
+addEventListener('focus', () => { try { if (bridge) { cfg = { ...cfg, ...JSON.parse(bridge.get()) }; paint(); } } catch (e) {} });
+const reload = window.__ambientReload;
+window.__ambientReload = function () { try { if (bridge) { cfg = { ...cfg, ...JSON.parse(bridge.get()) }; paint(); } } catch (e) {} return reload && reload.apply(this, arguments); };
+paint();
+
+// ---- Local video: plays here, full screen, and the glow attaches to it like on any site ----
+let url = null, uiT = 0;
 $('local').onclick = () => $('file').click();
 $('file').onchange = () => {
   const f = $('file').files[0]; if (!f) return;
@@ -87,15 +330,22 @@ $('file').onchange = () => {
   url = URL.createObjectURL(f);
   $('vid').src = url; $('stage').classList.add('on'); $('vid').play();
   history.pushState({ playing: 1 }, ''); // Back closes the player
-  $('vid').focus();
+  $('vid').focus(); showUI();
 };
-addEventListener('popstate', () => { $('vid').pause(); $('stage').classList.remove('on'); $('local').focus(); });
+function showUI() { $('stage').classList.add('ui'); clearTimeout(uiT); uiT = setTimeout(() => $('stage').classList.remove('ui'), 2500); }
+addEventListener('mousemove', () => { if ($('stage').classList.contains('on')) showUI(); });
+$('back').onclick = () => history.back();
+addEventListener('popstate', () => { $('vid').pause(); $('stage').classList.remove('on', 'ui'); $('local').focus(); });
 </script>
 <script>
-// On Windows the shortcuts use Ctrl instead of ⌘, and F11 for full screen.
-if (!/Mac/.test(navigator.platform)) document.querySelectorAll('.hint').forEach((h) => {
-  h.innerHTML = h.innerHTML.replace(/⌃⌘F/g, 'F11').replace(/⌘⇧/g, 'Ctrl+Shift+').replace(/⌘/g, 'Ctrl+');
-});
+// On Windows the shortcuts use Ctrl instead of ⌘, F11 for full screen, and Alt+← for back.
+if (!/Mac/.test(navigator.platform)) {
+  document.getElementById('localname').textContent = 'From this PC';
+  document.querySelector('.switch').title = 'Glow on/off (Ctrl+G)';
+  document.getElementById('keys').innerHTML =
+    '<span><kbd>Ctrl</kbd><kbd>G</kbd> glow</span><span><kbd>Ctrl</kbd><kbd>,</kbd> glow settings</span>' +
+    '<span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>H</kbd> home</span><span><kbd>Ctrl</kbd><kbd>[</kbd> back</span><span><kbd>F11</kbd> full screen</span>';
+}
 </script>
 </body>
 </html>
