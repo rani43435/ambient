@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <title>Ambient Video</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   /* On the glasses black is see-through, so only the video and its glow show. */
   :root { --fg: #F2F2EF; --dim: #9A9DA4; --line: #34373D; --accent: #7FE3B0; }
@@ -77,154 +77,222 @@
   #toast[hidden] { display: none; }
   .hint { font-size: 14px; color: var(--dim); max-width: 600px; line-height: 1.4; }
   /* ---------- Start screen (landing page) ---------- */
+  :root { --mint: #7FE3B0; --blue: #7C9CFF; --vio: #C08CFF; --ink: #000; --card: rgba(14,15,19,.62); --hair: rgba(255,255,255,.08); }
   #pick { display: block; overflow-y: auto; overflow-x: clip; background: #000; padding: 0; text-align: left; gap: 0;
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
   #pick[hidden], #pick [hidden] { display: none !important; }
   #pick a { color: inherit; }
-  .wrap { width: min(1160px, 100%); margin: 0 auto; padding: 0 24px; }
+  .wrap { width: min(1200px, 100%); margin: 0 auto; padding: 0 32px; }
+  .disp { font-family: "Inter Tight", "Inter", system-ui, sans-serif; }
 
   /* Top bar */
-  .nav { position: sticky; top: 0; z-index: 5; background: rgba(0,0,0,.72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255,255,255,.06); }
-  .nav .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; }
-  .mark { width: 22px; height: 14px; border-radius: 4px; background: #000; border: 1.5px solid #fff;
-    box-shadow: 0 0 10px 2px rgba(127,227,176,.7), 0 0 22px 6px rgba(124,108,255,.45); }
-  .navlinks { display: flex; gap: 24px; font-size: 14px; color: var(--dim); flex: 1; }
-  .navlinks a { text-decoration: none; }
-  .navlinks a:hover, .navlinks a:focus-visible { color: var(--fg); outline: none; }
-  .navact { display: flex; gap: 10px; }
-  #pick .nav .btn { min-height: 40px; padding: 0 16px; font-size: 14px; border-radius: 10px; }
-
-  /* Hero */
-  .hero { text-align: center; padding: 56px 0 40px; }
-  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent); font-weight: 500;
-    border: 1px solid rgba(127,227,176,.3); border-radius: 999px; padding: 6px 14px; background: rgba(127,227,176,.06); }
-  .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  #pick h1 { font-size: clamp(38px, 5.6vw, 72px); line-height: 1; letter-spacing: -.04em; font-weight: 700; margin: 20px auto 16px; max-width: 900px; }
-  #pick h1 em { font-style: normal; background: linear-gradient(90deg, #7FE3B0, #7C9CFF 50%, #E58CFF);
-    -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lead { font-size: 18px; line-height: 1.55; color: var(--dim); max-width: 600px; margin: 0 auto 32px; }
-  .hero .watch { text-align: left; }
-  .ctas { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
-  .small { font-size: 13px; color: var(--dim); line-height: 1.5; }
-  .small b { color: var(--fg); font-weight: 500; }
-  #pick #nochrome { display: none; margin: 18px auto 0; max-width: 460px; }
-  html.not-chrome #pick #nochrome { display: block; }
-
-  /* Hero picture: a screen whose colours spill into the room */
-  .show { position: relative; width: min(900px, 100%); margin: 70px auto 0; aspect-ratio: 16/9; animation: hue 24s linear infinite; }
-  .show .halo, .show .screen { position: absolute; inset: 0;
-    background: linear-gradient(120deg, #ff7a3d 0%, #ffcf5a 22%, #47d6a7 48%, #3a6dff 74%, #b14cff 100%); }
-  .show .halo { filter: blur(70px) saturate(1.4); transform: scale(1.12, 1.25); opacity: .8; border-radius: 60px; }
-  .show .screen { border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.14) inset, 0 40px 80px rgba(0,0,0,.6); }
-  .show .screen::before { content: ""; position: absolute; inset: 0;
-    background: radial-gradient(30% 40% at 66% 34%, rgba(255,255,255,.55), transparent 70%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,.5)); }
-  .show .screen::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: #0b0d14;
-    clip-path: polygon(0 58%, 12% 30%, 24% 52%, 40% 8%, 56% 48%, 68% 26%, 82% 50%, 92% 34%, 100% 46%, 100% 100%, 0 100%); }
-  .show .ui { position: absolute; left: 4%; right: 4%; bottom: 6%; z-index: 1; display: flex; align-items: center; gap: 12px; }
-  .show .ui i { width: 0; height: 0; border-left: 12px solid #fff; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
-  .show .ui b { flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #fff 38%, rgba(255,255,255,.3) 38%); }
-  @keyframes hue { to { filter: hue-rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .show { animation: none; } }
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 20; transition: background .4s, border-color .4s, backdrop-filter .4s; border-bottom: 1px solid transparent; }
+  .nav.solid { background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(20px) saturate(1.4); backdrop-filter: blur(20px) saturate(1.4); border-color: var(--hair); }
+  .nav .wrap { display: flex; align-items: center; gap: 12px; height: 72px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 15px; letter-spacing: -.01em; white-space: nowrap; text-decoration: none; }
+  .mark { position: relative; width: 24px; height: 15px; border-radius: 4px; background: #050505; border: 1.5px solid rgba(255,255,255,.92);
+    box-shadow: 0 0 12px 3px rgba(127,227,176,.55), 0 0 26px 8px rgba(124,108,255,.35); animation: markhue 12s linear infinite; }
+  @keyframes markhue { to { filter: hue-rotate(360deg); } }
+  .navact { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  #pick .nav .btn { min-height: 40px; padding: 0 16px; font-size: 14px; border-radius: 999px; }
 
   /* Buttons */
   #pick .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px;
-    font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 12px; border: 1px solid #2A2D33; background: #0E0F12;
-    color: var(--fg); transition: background .15s, border-color .15s, box-shadow .15s; white-space: nowrap; }
-  #pick .btn:hover { border-color: #4A4E57; background: #16181C; }
+    font-size: 15px; font-weight: 600; letter-spacing: -.005em; text-decoration: none; border-radius: 999px; border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04); color: var(--fg); white-space: nowrap; cursor: pointer;
+    transition: background .25s, border-color .25s, box-shadow .35s, transform .25s cubic-bezier(.2,.8,.2,1); }
+  #pick .btn:hover { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.08); }
+  #pick .btn:active { transform: scale(.97); }
   #pick .btn:focus { outline: none; }
   #pick .btn:focus-visible { background: var(--fg); color: #000; border-color: var(--fg); }
-  #pick .btn svg { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-  #pick .btn.solid { background: var(--fg); color: #000; border-color: var(--fg); }
-  #pick .btn.solid:hover { background: #fff; }
-  #pick .btn.green { background: var(--accent); color: #04140C; border-color: var(--accent); box-shadow: 0 0 28px rgba(127,227,176,.22); }
-  #pick .btn.green:hover { box-shadow: 0 0 38px rgba(127,227,176,.4); }
+  #pick .btn svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  #pick .btn.solid { background: #F4F4F1; color: #000; border-color: #F4F4F1; }
+  #pick .btn.solid:hover { background: #fff; box-shadow: 0 8px 30px rgba(255,255,255,.18); }
+  #pick .btn.green { background: var(--mint); color: #03140B; border-color: var(--mint); box-shadow: 0 0 0 0 rgba(127,227,176,0), 0 8px 30px rgba(127,227,176,.28); }
+  #pick .btn.green:hover { box-shadow: 0 0 0 6px rgba(127,227,176,.12), 0 10px 40px rgba(127,227,176,.45); }
   #pick .btn.green:focus-visible, #pick .btn.solid:focus-visible { box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--fg); }
   #pick .btn.quiet { border-color: transparent; background: transparent; color: var(--dim); font-weight: 500; font-size: 14px; min-height: 40px; padding: 0 12px; }
   #pick .btn.quiet:hover { color: var(--fg); }
   /* "Add to Chrome": only in Chrome on a computer, hidden once the extension is installed */
   html[data-ambient-ext] #pick .getext, html.not-chrome #pick .getext { display: none; }
 
-  /* Sections */
-  .sec { padding-top: 110px; scroll-margin-top: 60px; }
-  .sechead { text-align: center; margin-bottom: 40px; }
-  .sechead h2 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.035em; margin: 0 0 10px; font-weight: 700; }
-  .sechead p { color: var(--dim); margin: 0; font-size: 17px; }
+  /* ---------- Hero + scroll story share one live canvas ---------- */
+  .story { position: relative; height: 330vh; }
+  .room { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  #roomgl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .room .fallback { position: absolute; inset: 0; display: none;
+    background: radial-gradient(40% 45% at 70% 52%, rgba(255,140,80,.55), transparent 70%), radial-gradient(35% 40% at 62% 60%, rgba(90,120,255,.45), transparent 70%), #000; }
+  .room.nogl .fallback { display: block; }
+  .room::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 80% at 50% 120%, transparent 55%, rgba(0,0,0,.55)), linear-gradient(180deg, rgba(0,0,0,.35), transparent 22%); }
+  .grain { position: absolute; inset: -50%; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 1.2s steps(6) infinite; }
+  @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,2%)} 40%{transform:translate(2%,-3%)} 60%{transform:translate(-2%,-1%)} 80%{transform:translate(3%,3%)} 100%{transform:translate(0,0)} }
 
-  /* Watch panel */
-  .watch { position: relative; border: 1px solid #22252B; border-radius: 24px; padding: 40px; max-width: 860px; margin: 0 auto;
-    background: linear-gradient(180deg, #0C0D10, #060708); }
-  .watch::before { content: ""; position: absolute; inset: -1px; border-radius: 24px; padding: 1px; pointer-events: none;
-    background: linear-gradient(120deg, rgba(127,227,176,.55), transparent 30%, transparent 70%, rgba(124,156,255,.5));
+  /* Hero copy sits on top of the room */
+  .herocopy { position: absolute; z-index: 2; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; pointer-events: none; }
+  .herocopy .wrap { width: min(1200px, 100%); }
+  .herocopy .col { width: min(520px, 46%); pointer-events: auto; will-change: opacity, transform; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.78);
+    border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 7px 14px 7px 10px; background: rgba(0,0,0,.35);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  #pick h1 { font-family: "Inter Tight", "Inter", sans-serif; font-size: clamp(44px, 6.4vw, 92px); line-height: .94; letter-spacing: -.045em; font-weight: 600; margin: 22px 0 22px; }
+  #pick h1 em { font-style: normal; background: linear-gradient(100deg, #9FF0C6 0%, #7C9CFF 45%, #E2A2FF 80%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 200% 100%; animation: sheen 9s ease-in-out infinite alternate; }
+  @keyframes sheen { to { background-position: 100% 0; } }
+  .lead { font-size: 18px; line-height: 1.55; color: rgba(242,242,239,.66); margin: 0 0 30px; max-width: 460px; }
+
+  /* Watch box (glass) */
+  .watch { position: relative; border-radius: 22px; padding: 14px; background: rgba(10,11,14,.55);
+    border: 1px solid rgba(255,255,255,.1); -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3);
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+  .watch::before { content: ""; position: absolute; inset: -1px; border-radius: 22px; padding: 1px; pointer-events: none;
+    background: linear-gradient(120deg, rgba(127,227,176,.6), transparent 35%, transparent 65%, rgba(124,156,255,.55));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-  #pick .row { width: 100%; display: flex; gap: 10px; }
-  #pick .row input { flex: 1; min-width: 0; min-height: 56px; font: inherit; font-size: 16px; color: var(--fg); background: #000;
-    border: 1px solid #2A2D33; border-radius: 12px; padding: 0 18px; outline: none; transition: border-color .15s, box-shadow .15s; }
-  #pick .row input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(127,227,176,.12); }
-  #pick .row .btn { min-height: 56px; padding: 0 30px; }
-  .srcs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
-  #recent { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  #pick .row { width: 100%; display: flex; gap: 8px; }
+  #pick .row input { flex: 1; min-width: 0; min-height: 54px; font: inherit; font-size: 16px; color: var(--fg); background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 0 18px; outline: none; transition: border-color .2s, box-shadow .2s; }
+  #pick .row input::placeholder { color: rgba(242,242,239,.42); }
+  #pick .row input:focus { border-color: rgba(127,227,176,.8); box-shadow: 0 0 0 4px rgba(127,227,176,.14); }
+  #pick .row .btn { min-height: 54px; padding: 0 28px; border-radius: 14px; }
+  .srcs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+  #pick .srcs .btn { min-height: 44px; font-size: 14px; padding: 0 16px; border-radius: 12px; }
+  #recent { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding: 0 4px 4px; }
   #recent:empty { display: none; }
-  #recent::before { content: "Recent"; width: 100%; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #6B6F77; }
-  #pick #recent .btn { min-height: 36px; font-size: 13px; font-weight: 500; padding: 0 14px; border-radius: 999px; max-width: 320px;
-    overflow: hidden; text-overflow: ellipsis; display: block; line-height: 34px; }
-  #pick #connect { margin-top: 14px; }
+  #recent::before { content: "Recent"; width: 100%; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: rgba(242,242,239,.4); }
+  #pick #recent .btn { min-height: 32px; font-size: 13px; font-weight: 500; padding: 0 14px; max-width: 280px;
+    overflow: hidden; text-overflow: ellipsis; display: block; line-height: 30px; }
+  #pick #connect { margin-top: 10px; width: 100%; }
+  .small { font-size: 13px; color: var(--dim); line-height: 1.5; }
+  .small b { color: var(--fg); font-weight: 500; }
+  #pick #nochrome { display: none; margin: 14px 4px 0; max-width: 460px; }
+  html.not-chrome #pick #nochrome { display: block; }
+
+  /* Story captions (appear while scrolling) */
+  .cap { position: absolute; z-index: 2; left: 0; right: 0; bottom: 9vh; text-align: center; pointer-events: none; opacity: 0; will-change: opacity, transform; }
+  .cap .k { font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: rgba(242,242,239,.55); }
+  .cap h2 { font-family: "Inter Tight", "Inter", sans-serif; font-size: clamp(34px, 4.8vw, 68px); letter-spacing: -.04em; line-height: 1; font-weight: 600; margin: 12px 0 0; }
+  .cap h2 span { color: rgba(242,242,239,.38); }
+  .scrollhint { position: absolute; z-index: 2; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(242,242,239,.45); pointer-events: none; }
+  .scrollhint i { width: 1px; height: 34px; background: linear-gradient(rgba(255,255,255,.6), transparent); animation: drip 2s ease-in-out infinite; transform-origin: top; }
+  @keyframes drip { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+  /* ---------- Sections ---------- */
+  .sec { position: relative; padding-top: 160px; scroll-margin-top: 80px; }
+  .sechead { margin-bottom: 56px; max-width: 760px; }
+  .sechead.c { text-align: center; margin-left: auto; margin-right: auto; }
+  .sechead .k { font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--mint); }
+  .sechead h2 { font-family: "Inter Tight", "Inter", sans-serif; font-size: clamp(40px, 5.4vw, 76px); letter-spacing: -.045em; line-height: .98; margin: 14px 0 18px; font-weight: 600; }
+  .sechead h2 span { color: rgba(242,242,239,.36); }
+  .sechead p { color: var(--dim); margin: 0; font-size: 18px; line-height: 1.55; }
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1s cubic-bezier(.2,.8,.2,1), transform 1s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal.d1 { transition-delay: .08s; } .reveal.d2 { transition-delay: .16s; } .reveal.d3 { transition-delay: .24s; }
 
   /* Download cards */
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card { position: relative; border: 1px solid #1F2227; border-radius: 20px; padding: 28px; background: #08090B;
-    display: flex; flex-direction: column; gap: 14px; }
-  .card.rec { border-color: rgba(127,227,176,.45); box-shadow: 0 0 0 1px rgba(127,227,176,.15), 0 20px 60px rgba(127,227,176,.06); }
-  .card.rec::after { content: "For this computer"; position: absolute; top: 20px; right: 20px; font-size: 11px; font-weight: 600;
-    color: #04140C; background: var(--accent); border-radius: 999px; padding: 4px 10px; }
-  .os { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: #121418; border: 1px solid #23262C; }
-  .os svg { width: 24px; height: 24px; fill: var(--fg); }
-  .card h3 { margin: 4px 0 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
-  .card p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; flex: 1; }
-  .card .btns2 { display: flex; flex-direction: column; gap: 8px; }
+  .dl { position: relative; }
+  .dl::before { content: ""; position: absolute; left: 50%; top: 40%; width: 90%; height: 70%; transform: translate(-50%, -50%); pointer-events: none;
+    background: radial-gradient(closest-side, rgba(124,156,255,.16), transparent), radial-gradient(40% 60% at 30% 50%, rgba(127,227,176,.1), transparent); filter: blur(30px); }
+  .grid { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { position: relative; border: 1px solid rgba(255,255,255,.08); border-radius: 26px; padding: 30px; background: linear-gradient(180deg, rgba(20,21,26,.8), rgba(8,9,11,.9));
+    display: flex; flex-direction: column; gap: 14px; overflow: hidden; transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .4s; }
+  .card::before { content: ""; position: absolute; left: -20%; right: -20%; top: -60%; height: 100%; pointer-events: none; opacity: .0; transition: opacity .6s;
+    background: radial-gradient(closest-side, rgba(127,227,176,.22), transparent); }
+  .card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,.16); }
+  .card:hover::before { opacity: 1; }
+  .card.rec { border-color: rgba(127,227,176,.5); box-shadow: 0 0 0 1px rgba(127,227,176,.15), 0 30px 90px rgba(127,227,176,.1); }
+  .card.rec::before { opacity: 1; }
+  .card.rec::after { content: "For this computer"; position: absolute; top: 24px; right: 24px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+    color: #03140B; background: var(--mint); border-radius: 999px; padding: 5px 11px; box-shadow: 0 0 20px rgba(127,227,176,.45); }
+  .os { position: relative; width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+  .os svg { width: 25px; height: 25px; fill: var(--fg); }
+  .card h3 { position: relative; margin: 8px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -.025em; font-family: "Inter Tight", "Inter", sans-serif; }
+  .card p { position: relative; margin: 0; color: var(--dim); font-size: 14px; line-height: 1.6; flex: 1; }
+  .card .btns2 { position: relative; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
   .card .btns2 .btn { width: 100%; }
 
-  /* Features */
-  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #1A1C20; border: 1px solid #1A1C20; border-radius: 20px; overflow: hidden; }
-  .feat { background: #050506; padding: 30px; }
-  .feat .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 18px;
-    background: rgba(127,227,176,.08); border: 1px solid rgba(127,227,176,.22); color: var(--accent); }
-  .feat .ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .feat h3 { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
-  .feat p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; }
+  /* Works with */
+  .works { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 44px; }
+  .works span { font-size: 14px; color: rgba(242,242,239,.6); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 9px 16px; background: rgba(255,255,255,.02); }
 
-  .faq { max-width: 860px; margin: 0 auto; border-top: 1px solid #1F2227; }
-  .faq details { border-bottom: 1px solid #1F2227; padding: 20px 0; }
-  .faq summary { cursor: pointer; font-weight: 500; font-size: 17px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  /* Features: big bento */
+  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .tile { position: relative; overflow: hidden; border-radius: 28px; border: 1px solid rgba(255,255,255,.07); background: #07080A; padding: 34px; min-height: 300px;
+    display: flex; flex-direction: column; justify-content: flex-end; }
+  .tile.a { grid-column: span 4; min-height: 420px; } .tile.b { grid-column: span 2; min-height: 420px; } .tile.c, .tile.d, .tile.e { grid-column: span 2; }
+  .tile h3 { position: relative; margin: 0 0 8px; font-family: "Inter Tight", "Inter", sans-serif; font-size: 26px; letter-spacing: -.03em; font-weight: 600; }
+  .tile p { position: relative; margin: 0; color: var(--dim); font-size: 15px; line-height: 1.55; max-width: 420px; }
+  .tile .vis { position: absolute; inset: 0; pointer-events: none; }
+  /* tile a: a breathing light, calm vs alive */
+  .tile.a .vis { background: radial-gradient(38% 55% at 70% 38%, rgba(255,150,90,.55), transparent 70%), radial-gradient(30% 45% at 82% 30%, rgba(124,156,255,.5), transparent 70%);
+    filter: blur(10px); animation: breathe 8s ease-in-out infinite alternate; }
+  .tile.a .scr { position: absolute; right: 12%; top: 18%; width: 34%; aspect-ratio: 16/9; border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
+    background: linear-gradient(120deg, #ff8a4c, #ffd36b 30%, #7ad9b8 60%, #5b7cff); box-shadow: 0 20px 60px rgba(0,0,0,.6); animation: hue 18s linear infinite; }
+  @keyframes breathe { 0% { opacity: .55; transform: scale(.96); filter: blur(10px) hue-rotate(0deg); } 100% { opacity: 1; transform: scale(1.05); filter: blur(10px) hue-rotate(70deg); } }
+  @keyframes hue { to { filter: hue-rotate(360deg); } }
+  /* tile b: glasses — black is see-through */
+  .tile.b .vis { background: radial-gradient(45% 30% at 50% 32%, rgba(127,227,176,.35), transparent 70%); }
+  .tile.b .gl { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: 72%; }
+  .tile.b .gl svg { width: 100%; fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.4; }
+  /* tile c/d/e: sliders etc */
+  .tile .meter { position: absolute; left: 34px; right: 34px; top: 44px; display: flex; flex-direction: column; gap: 14px; }
+  .tile .meter div { height: 6px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .tile .meter b { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--mint), var(--blue)); animation: slide 5s ease-in-out infinite alternate; }
+  .tile .meter div:nth-child(2) b { animation-delay: -2s; background: linear-gradient(90deg, var(--blue), var(--vio)); }
+  @keyframes slide { from { width: 30%; } to { width: 88%; } }
+  .tile .big { position: absolute; left: 34px; top: 26px; font-family: "Inter Tight", "Inter", sans-serif; font-size: 88px; font-weight: 600; letter-spacing: -.06em; line-height: 1;
+    background: linear-gradient(180deg, #fff, rgba(255,255,255,.25)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tile .chips { position: absolute; left: 34px; right: 34px; top: 40px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tile .chips span { font-size: 13px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 7px 12px; color: rgba(242,242,239,.75); background: rgba(255,255,255,.03); }
+
+  .faq { max-width: 860px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,.08); }
+  .faq details { border-bottom: 1px solid rgba(255,255,255,.08); padding: 24px 0; }
+  .faq summary { cursor: pointer; font-weight: 500; font-size: 19px; letter-spacing: -.01em; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; color: var(--dim); font-size: 22px; line-height: 1; }
-  .faq details[open] summary::after { content: "–"; }
-  .faq summary:focus-visible { outline: none; color: var(--accent); }
-  .faq details p { color: var(--dim); font-size: 15px; line-height: 1.6; margin: 12px 0 0; }
+  .faq summary::after { content: ""; width: 12px; height: 12px; flex: none; border-right: 1.5px solid var(--dim); border-bottom: 1.5px solid var(--dim); transform: rotate(45deg) translate(-3px,-3px); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  .faq details[open] summary::after { transform: rotate(225deg) translate(-3px,-3px); }
+  .faq summary:focus-visible { outline: none; color: var(--mint); }
+  .faq details p { color: var(--dim); font-size: 16px; line-height: 1.65; margin: 14px 0 0; max-width: 720px; }
   .faq b { color: var(--fg); font-weight: 500; }
 
-  .foot { margin-top: 110px; border-top: 1px solid #16181C; padding: 28px 0 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    font-size: 13px; color: #6B6F77; }
+  /* Closing */
+  .end { position: relative; margin-top: 180px; text-align: center; padding: 120px 0 80px; overflow: hidden; }
+  .end::before { content: ""; position: absolute; left: 50%; bottom: -30%; width: 120%; height: 120%; transform: translateX(-50%); pointer-events: none;
+    background: radial-gradient(35% 45% at 50% 70%, rgba(127,227,176,.22), transparent 70%), radial-gradient(30% 40% at 38% 75%, rgba(124,156,255,.2), transparent 70%), radial-gradient(30% 40% at 62% 75%, rgba(226,162,255,.16), transparent 70%);
+    filter: blur(20px); animation: breathe 10s ease-in-out infinite alternate; }
+  .end h2 { position: relative; font-family: "Inter Tight", "Inter", sans-serif; font-size: clamp(48px, 8vw, 128px); letter-spacing: -.055em; line-height: .92; margin: 0 0 34px; font-weight: 600; }
+  .end .ctas { position: relative; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .foot { border-top: 1px solid rgba(255,255,255,.06); padding: 28px 0 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #6B6F77; }
   .foot a { text-decoration: none; }
   .foot a:hover { color: var(--fg); }
 
   @media (max-width: 900px) {
-    .navlinks { display: none; }
-    .nav .wrap { justify-content: space-between; }
-    .hero { padding: 56px 0 24px; }
-    .show { margin-top: 48px; }
-    .grid, .feats { grid-template-columns: 1fr; }
-    .watch { padding: 26px 20px; }
-    .sec { padding-top: 80px; }
+    .wrap { padding: 0 20px; }
+    .herocopy { align-items: flex-start; padding-top: 104px; }
+    .herocopy .col { width: 100%; }
+    #pick h1 { font-size: clamp(42px, 11vw, 64px); margin: 18px 0 14px; }
+    .lead { font-size: 16px; margin-bottom: 20px; }
+    .grid { grid-template-columns: 1fr; }
+    .bento { grid-template-columns: 1fr; }
+    .tile.a, .tile.b, .tile.c, .tile.d, .tile.e { grid-column: auto; min-height: 320px; }
+    .sec { padding-top: 120px; }
+    .scrollhint { display: none; }
+    .cap { bottom: 7vh; padding: 0 20px; }
   }
   @media (max-width: 560px) {
-    .wrap { padding: 0 16px; }
-    #pick .nav .btn { padding: 0 12px; font-size: 13px; }
+    #pick .nav .btn { padding: 0 13px; font-size: 13px; }
     #pick .nav .btn svg { display: none; }
-    #pick .row { flex-direction: column; }
-    .ctas .btn { width: 100%; }
-    .lead { font-size: 17px; }
+    #pick .nav .btn.quiet { display: none; }
+    #pick .row .btn { padding: 0 20px; }
+    .end .ctas .btn { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .grain, .mark, #pick h1 em, .tile.a .vis, .tile.a .scr, .end::before, .tile .meter b, .eyebrow i { animation: none !important; }
+    .reveal { opacity: 1; transform: none; transition: none; }
   }
 </style>
 </head>
@@ -236,10 +304,9 @@
 </div>
 
 <div id="pick">
-  <nav class="nav">
+  <nav class="nav" id="nav">
     <div class="wrap">
-      <div class="brand"><span class="mark"></span><span class="txt">Ambient Video</span></div>
-      <span style="flex:1"></span>
+      <a class="brand" href="#top"><span class="mark"></span><span class="txt">Ambient Video</span></a>
       <div class="navact">
         <a class="btn quiet" href="#how">Help</a>
         <a class="btn getext" id="getext" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">
@@ -250,34 +317,49 @@
     </div>
   </nav>
 
-  <div class="wrap">
-    <header class="hero">
-      <span class="eyebrow"><i></i>Ambilight for every screen</span>
-      <h1>Let the picture <em>spill into the room.</em></h1>
-      <p class="lead">Ambient Video takes the colours at the edge of what you watch and paints them softly around the screen — on YouTube, your own videos and AR glasses.</p>
-      <div class="watch" id="watch">
-        <div class="row">
-          <input id="ytlink" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
-          <button class="btn green" id="ytgo">Play</button>
-        </div>
-        <div class="srcs">
-          <button class="btn" id="yttv">
-            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M10.5 9v4l3.5-2z"/></svg>YouTube TV</button>
-          <button class="btn" id="open">
-            <svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Video from this device</button>
-          <button class="btn quiet" id="share">Or share another tab</button>
-        </div>
-        <div id="recent"></div>
-        <button class="btn green" id="connect" hidden>Connect glow to the video tab</button>
-      </div>
-      <div class="small" id="nochrome">The glow on YouTube needs <b>Chrome on a computer</b>. You can still play a video from this device.</div>
-      <div class="show" aria-hidden="true"><div class="halo"></div><div class="screen"></div><div class="ui"><i></i><b></b></div></div>
-    </header>
+  <div class="story" id="top">
+    <div class="room" id="room">
+      <canvas id="roomgl" aria-hidden="true"></canvas>
+      <div class="fallback" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
 
-    <section class="sec" id="download">
-      <div class="sechead"><h2>Get Ambient Video</h2><p>Free for Mac, Windows and Chrome.</p></div>
+      <div class="herocopy" id="herocopy">
+        <div class="wrap">
+          <div class="col">
+            <span class="eyebrow"><i></i>Ambilight for every screen</span>
+            <h1>Let the picture <em>spill into the room.</em></h1>
+            <p class="lead">Ambient Video reads the colours at the edge of what you watch and paints them softly around the screen. YouTube, your own videos, even AR glasses.</p>
+            <div class="watch" id="watch">
+              <div class="row">
+                <input id="ytlink" placeholder="Paste a link, or search YouTube" autocomplete="off" spellcheck="false" enterkeyhint="go">
+                <button class="btn green" id="ytgo">Play</button>
+              </div>
+              <div class="srcs">
+                <button class="btn" id="yttv">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M10.5 9v4l3.5-2z"/></svg>YouTube TV</button>
+                <button class="btn" id="open">
+                  <svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Video from this device</button>
+                <button class="btn quiet" id="share">Or share another tab</button>
+              </div>
+              <div id="recent"></div>
+              <button class="btn green" id="connect" hidden>Connect glow to the video tab</button>
+            </div>
+            <div class="small" id="nochrome">The glow on YouTube needs <b>Chrome on a computer</b>. You can still play a video from this device.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cap" id="cap1"><div class="k">Without Ambient Video</div><h2>A bright box. <span>A dark room.</span></h2></div>
+      <div class="cap" id="cap2"><div class="k">With Ambient Video</div><h2>The whole room <span>joins the film.</span></h2></div>
+      <div class="scrollhint" id="hint"><span>Scroll</span><i></i></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="sec dl" id="download">
+      <div class="sechead c reveal"><div class="k">Free</div><h2>Get Ambient Video.<br><span>On every screen you own.</span></h2><p>Mac, Windows and Chrome. No account, nothing to set up.</p></div>
       <div class="grid">
-        <div class="card" id="cmac">
+        <div class="card reveal" id="cmac">
           <div class="os"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.6zM14.1 5.6c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.3z"/></svg></div>
           <h3>Mac</h3>
           <p>Open the zip and drag <b style="color:var(--fg);font-weight:500">Ambient Video</b> to Applications. First launch: System Settings → Privacy &amp; Security → Open Anyway.</p>
@@ -286,7 +368,7 @@
             <a class="btn" id="macx64" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-mac-x64.zip">Intel Mac</a>
           </div>
         </div>
-        <div class="card" id="cwin">
+        <div class="card reveal d1" id="cwin">
           <div class="os"><svg viewBox="0 0 24 24"><path d="M3 5.3l7.4-1v7.2H3zM11.3 4.2L21 2.8v8.7h-9.7zM3 12.5h7.4v7.2l-7.4-1zM11.3 12.5H21v8.7l-9.7-1.4z"/></svg></div>
           <h3>Windows</h3>
           <p>Unzip it and run <b style="color:var(--fg);font-weight:500">Ambient Video.exe</b>. If Windows warns you, press More info → Run anyway.</p>
@@ -294,44 +376,60 @@
             <a class="btn solid" id="winx64" href="https://github.com/rani43435/ambient/releases/latest/download/Ambient-Video-windows-x64.zip">Download for Windows</a>
           </div>
         </div>
-        <div class="card" id="cchrome">
+        <div class="card reveal d2" id="cchrome">
           <div class="os"><svg viewBox="0 0 24 24" style="fill:none;stroke:var(--fg);stroke-width:1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M9 13.8 4.9 6.7M15 13.8l-4.1 7.1"/></svg></div>
           <h3>Chrome extension</h3>
-          <p>The glow appears right on youtube.com — nothing new to learn. Works on any computer with Chrome.</p>
+          <p>The glow appears right on youtube.com. Nothing new to learn. Works on any computer with Chrome.</p>
           <div class="btns2">
             <a class="btn solid" href="https://chromewebstore.google.com/detail/hhhdnjhaofgjmhppdgjpneonmeenlfpd" target="_blank" rel="noopener">Add to Chrome</a>
           </div>
         </div>
       </div>
+      <div class="works reveal"><span>YouTube</span><span>Vimeo</span><span>Your own videos</span><span>YouTube TV</span><span>RayNeo AR glasses</span></div>
     </section>
 
-
     <section class="sec">
-      <div class="sechead"><h2>Made to disappear</h2><p>Just the picture and its light.</p></div>
-      <div class="feats">
-        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg></div>
-          <h3>Smooth, never flickers</h3><p>Colours ease from frame to frame, so the light moves like the scene — calm in dark films, alive in bright ones.</p></div>
-        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg></div>
-          <h3>Your size, your glow</h3><p>Change the picture size and how strong the glow is while you watch.</p></div>
-        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 10h20M4 10l1.5 6a2 2 0 0 0 2 1.5H9a2 2 0 0 0 2-1.6L11.5 13h1l.5 2.9a2 2 0 0 0 2 1.6h1.5a2 2 0 0 0 2-1.5L20 10"/></svg></div>
-          <h3>Built for AR glasses</h3><p>On RayNeo, black is see-through — only the video and its light float in front of you.</p></div>
+      <div class="sechead reveal"><div class="k">Made to disappear</div><h2>Just the picture.<br><span>And its light.</span></h2></div>
+      <div class="bento">
+        <div class="tile a reveal"><div class="vis"></div><div class="scr"></div>
+          <h3>Smooth. Never flickers.</h3><p>Colours ease from frame to frame, so the light moves like the scene: calm in dark films, alive in bright ones.</p></div>
+        <div class="tile b reveal d1"><div class="vis"></div>
+          <div class="gl"><svg viewBox="0 0 200 70"><path d="M8 18h184M14 18c0 26 6 40 34 40s38-14 40-30M186 18c0 26-6 40-34 40s-38-14-40-30M88 28c4-6 20-6 24 0"/></svg></div>
+          <h3>Built for AR glasses</h3><p>On RayNeo, black is see-through. Only the video and its light float in front of you.</p></div>
+        <div class="tile c reveal"><div class="meter"><div><b></b></div><div><b></b></div></div>
+          <h3>Your size, your glow</h3><p>Change the picture size and the glow strength while you watch.</p></div>
+        <div class="tile d reveal d1"><div class="big">0</div>
+          <h3>Zero data collected</h3><p>Everything runs on your device. Recent links never leave it.</p></div>
+        <div class="tile e reveal d2"><div class="chips"><span>Mac</span><span>Windows</span><span>Chrome</span><span>RayNeo</span></div>
+          <h3>One glow, everywhere</h3><p>Same light on your laptop, your desktop and your glasses.</p></div>
       </div>
     </section>
 
     <section class="sec" id="how">
-      <div class="sechead"><h2>Questions</h2></div>
-      <div class="faq">
+      <div class="sechead c reveal"><div class="k">Help</div><h2>Questions.</h2></div>
+      <div class="faq reveal">
         <details><summary>How does YouTube TV sign in?</summary>
-          <p>It shows a code — open <b>yt.be/activate</b> on your phone and type it in. In the browser, YouTube TV needs the Chrome extension.</p></details>
+          <p>It shows a code. Open <b>yt.be/activate</b> on your phone and type it in. In the browser, YouTube TV needs the Chrome extension.</p></details>
         <details><summary>Which links can I play?</summary>
-          <p><b>YouTube</b> and <b>Vimeo</b> play right here with the glow (Chrome will ask to share <b>this tab</b>). Any other link — Plex, archive.org… — opens in a new tab, then press <b>Connect glow</b>.</p></details>
+          <p><b>YouTube</b> and <b>Vimeo</b> play right here with the glow (Chrome will ask to share <b>this tab</b>). Any other link, like Plex or archive.org, opens in a new tab; then press <b>Connect glow</b>.</p></details>
         <details><summary>Does it work with Netflix or HBO?</summary>
           <p>No. Protected services block other pages from reading their picture, so the glow can't see the colours.</p></details>
         <details><summary>Is my data collected?</summary>
-          <p>No. Everything runs on your device; recent links stay on your device. Read the <a href="privacy.html" style="color:var(--accent)">privacy policy</a>.</p></details>
+          <p>No. Everything runs on your device; recent links stay on your device. Read the <a href="privacy.html" style="color:var(--mint)">privacy policy</a>.</p></details>
       </div>
     </section>
+  </div>
 
+  <section class="end">
+    <div class="wrap">
+      <h2 class="reveal">Turn the lights off.<br>Turn the film on.</h2>
+      <div class="ctas reveal d1">
+        <a class="btn green" href="#download"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download free</a>
+        <a class="btn" href="#top">Try it in the browser</a>
+      </div>
+    </div>
+  </section>
+  <div class="wrap">
     <footer class="foot">
       <span>© 2026 Ambient Video</span>
       <span><a href="privacy.html">Privacy</a></span>
@@ -720,6 +818,207 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' && e.target.type !== 'range') seekTo(now() + 10);
   if (e.key === 'ArrowLeft' && e.target.type !== 'range') seekTo(now() - 10);
 });
+</script>
+<script>
+// Landing page: a live "room" rendered with WebGL. A film plays on a screen and its
+// edge colours spill onto the walls and floor (the same idea as the app itself).
+// Scrolling turns the glow off ("without"), then back on ("with").
+(function () {
+  const pick = document.getElementById('pick');
+  const nav = document.getElementById('nav');
+  const story = document.querySelector('.story');
+  const room = document.getElementById('room');
+  const cv = document.getElementById('roomgl');
+  const hero = document.getElementById('herocopy');
+  const cap1 = document.getElementById('cap1'), cap2 = document.getElementById('cap2'), hint = document.getElementById('hint');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  pick.style.scrollBehavior = 'smooth';
+
+  // reveal on scroll
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { root: pick, threshold: .15 });
+  document.querySelectorAll('#pick .reveal').forEach(el => io.observe(el));
+
+  const gl = cv.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: 'high-performance' });
+  if (!gl) { room.classList.add('nogl'); }
+
+  const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  // Pass 1: the film (procedural scenes that cross-fade)
+  const FS_SCENE = `precision highp float;
+uniform vec2 uR; uniform float uT;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p*=2.03;a*=.5;}return v;}
+vec3 sunset(vec2 u,float t){
+  vec3 sky=mix(vec3(1.,.42,.16),vec3(.32,.12,.52),smoothstep(.35,1.,u.y));
+  sky=mix(sky,vec3(1.,.78,.35),smoothstep(.62,.4,u.y)*.6);
+  vec2 sp=vec2(.62,.5+.03*sin(t*.2));float d=length((u-sp)*vec2(1.78,1.));
+  sky=mix(sky,vec3(1.,.86,.55),smoothstep(.13,.1,d))+vec3(1.,.5,.2)*exp(-d*5.)*.7;
+  float hz=.4;
+  if(u.y<hz){float y=hz-u.y;float w=smoothstep(.2,1.,sin(u.x*22.+t*.8+sin(u.y*60.+t)*1.5)*.5+.5);
+    vec3 sea=mix(vec3(.08,.06,.18),vec3(.5,.18,.12),smoothstep(.4,0.,y));
+    float refl=exp(-abs(u.x-sp.x)*7.)*smoothstep(.0,.35,1.-y*2.)*w;
+    return sea+vec3(1.,.6,.25)*refl*.8;}
+  return sky;}
+vec3 aurora(vec2 u,float t){
+  vec3 c=mix(vec3(.01,.03,.09),vec3(.04,.1,.22),u.y);
+  float st=step(.996,h(floor(u*vec2(260.,140.))))*smoothstep(.3,.9,u.y);c+=st*.8;
+  for(int i=0;i<3;i++){float fi=float(i);
+    float y=.58+fi*.09+.08*sin(u.x*4.+t*.35+fi*2.)+ .06*(fb(vec2(u.x*3.+t*.08,fi))-.5);
+    float b=exp(-abs(u.y-y)*18.)*smoothstep(y-.25,y,u.y);
+    float r=.5+.5*sin(u.x*30.+t*.6+fi);
+    c+=mix(vec3(.15,1.,.6),vec3(.6,.3,1.),fi/2.)*b*(.55+.45*r);}
+  float m=.22+.07*sin(u.x*7.)+.05*sin(u.x*17.+1.);
+  if(u.y<m)c=vec3(.0,.01,.03)+c*.06;
+  return c;}
+vec3 city(vec2 u,float t){
+  vec3 c=mix(vec3(.85,.15,.5),vec3(.08,.03,.25),smoothstep(.2,.95,u.y));
+  float x=u.x*14.+t*.15;float id=floor(x);float bh=.3+.42*h(vec2(id,1.));
+  float gy=.18;
+  if(u.y<bh&&u.y>gy){c=vec3(.03,.02,.08);
+    vec2 g=fract(vec2(x*3.,u.y*38.));float on=step(.55,h(floor(vec2(x*3.,u.y*38.))+id))*step(.25,g.x)*step(.3,g.y);
+    c+=on*mix(vec3(.2,.9,1.),vec3(1.,.35,.75),h(vec2(id,floor(u.y*38.))))*.9;}
+  if(u.y<=gy){float s=sin(u.y*300.+t*3.)*.5+.5;c=vec3(.05,.02,.1)+mix(vec3(1.,.3,.7),vec3(.2,.8,1.),u.x)*.35*s*smoothstep(0.,gy,u.y);}
+  return c;}
+vec3 sea(vec2 u,float t){
+  vec3 c=mix(vec3(.0,.08,.12),vec3(.1,.65,.7),u.y);
+  float r=0.;for(int i=0;i<4;i++){float fi=float(i);r+=smoothstep(.04,0.,abs(u.x-(.2+fi*.2)-(1.-u.y)*.25-.03*sin(t*.5+fi)))*u.y;}
+  c+=vec3(.6,1.,.9)*r*.35;
+  for(int i=0;i<6;i++){float fi=float(i);vec2 b=vec2(fract(.13*fi+.07*sin(t*.3+fi)), fract(t*.04*(1.+fi*.2)+fi*.17));
+    c+=vec3(.7,1.,1.)*smoothstep(.012,.0,length((u-b)*vec2(1.78,1.)))*.6;}
+  c=mix(c,vec3(.0,.03,.05),smoothstep(.25,0.,u.y)*.8);
+  return c;}
+vec3 sc(int i,vec2 u,float t){if(i==0)return sunset(u,t);if(i==1)return aurora(u,t);if(i==2)return city(u,t);return sea(u,t);}
+void main(){vec2 u=gl_FragCoord.xy/uR;float t=uT;
+  float D=7.;float k=mod(t/D,4.);int a=int(floor(k));int b=int(mod(floor(k)+1.,4.));float f=smoothstep(.82,1.,fract(k));
+  u.x+=.01*sin(t*.1);
+  vec3 c=mix(sc(a,u,t),sc(b,u,t),f);
+  gl_FragColor=vec4(clamp(c,0.,1.),1.);}`;
+  // Pass 2: the room
+  const FS_ROOM = `precision highp float;
+uniform vec2 uR; uniform vec4 uS; uniform float uG; uniform float uT; uniform sampler2D uTex;
+float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+vec3 tx(vec2 uv,float b){return texture2D(uTex,clamp(uv,.002,.998),b).rgb;}
+void main(){
+  vec2 p=gl_FragCoord.xy; vec2 c=uS.xy; vec2 hs=uS.zw;
+  vec2 lo=c-hs, hi=c+hs;
+  vec2 rel=(p-c)/hs;                       // -1..1 inside the screen
+  // smooth distance to a rounded copy of the screen (no hard strips at the corners)
+  float rr=hs.y*.7; vec2 ee=abs(p-c)-hs+rr; float d=max(length(max(ee,0.))+min(max(ee.x,ee.y),0.)-rr,0.);
+  vec3 col=vec3(0.);
+  vec2 e=abs(p-c)-hs+6.; float sd=length(max(e,0.))+min(max(e.x,e.y),0.)-6.;
+  vec2 uv=(p-lo)/(hs*2.);
+  float floorY=lo.y-hs.y*.42;
+  // glow colour: project the point back onto the screen along the ray from its centre,
+  // then read heavily blurred mip levels of the frame there
+  float mx=max(abs(rel.x),abs(rel.y)); vec2 r1=rel/max(mx,1.);
+  vec2 eu=.5+r1*.42, mu=.5+r1*.22;
+  vec3 g=tx(eu,7.)*.55+tx(mu,8.)*.3+tx(vec2(.5),9.)*.15;
+  float spread=hs.x*1.1;
+  float fall=exp(-d/spread)*.9+.32/(1.+pow(d/spread,2.));
+  vec3 glow=g*fall*uG*1.3;
+  glow+=tx(vec2(.5),9.)*.05*exp(-d/(hs.x*.5));
+  col+=glow;
+  // floor: reflection of the screen + glow
+  if(p.y<floorY){
+    float fy=floorY-p.y;
+    vec2 ruv=vec2((p.x-lo.x)/(hs.x*2.), ((floorY-p.y)*1.3)/(hs.y*2.));
+    float inside=smoothstep(-.05,.02,ruv.x)*smoothstep(1.05,.98,ruv.x)*smoothstep(1.,.0,ruv.y);
+    vec3 r=tx(vec2(ruv.x,ruv.y),3.5);
+    col+=r*inside*(.10+.32*uG)*exp(-fy/(hs.y*1.2));
+    col*=1.+.15*uG;
+  }
+  // screen
+  if(sd<0.){ col=tx(uv,0.)*1.02; col+=.03*(1.-smoothstep(0.,.25,uv.y)); }
+  float bez=smoothstep(1.5,0.,abs(sd));
+  col+=bez*vec3(.25);
+  // vignette + tonemap + dither
+  vec2 n=p/uR-.5; col*=1.-.35*dot(n,n);
+  col=1.-exp(-col*1.25);
+  col+= (h(p+uT)-.5)/255.;
+  gl_FragColor=vec4(col,1.);
+}`;
+
+  if (!gl) return;
+  function sh(t, s) { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(o)); return null; } return o; }
+  function prog(fs) { const p = gl.createProgram(); const a = sh(gl.VERTEX_SHADER, VS), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null; gl.attachShader(p, a); gl.attachShader(p, b); gl.bindAttribLocation(p, 0, 'p'); gl.linkProgram(p); return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null; }
+  const P1 = prog(FS_SCENE), P2 = prog(FS_ROOM);
+  if (!P1 || !P2) { room.classList.add('nogl'); return; }
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const TW = 512, TH = 256;
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, TW, TH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const U1 = { R: gl.getUniformLocation(P1, 'uR'), T: gl.getUniformLocation(P1, 'uT') };
+  const U2 = { R: gl.getUniformLocation(P2, 'uR'), S: gl.getUniformLocation(P2, 'uS'), G: gl.getUniformLocation(P2, 'uG'), T: gl.getUniformLocation(P2, 'uT'), X: gl.getUniformLocation(P2, 'uTex') };
+
+  let W = 0, H = 0, scale = 1;
+  function size() {
+    const r = room.getBoundingClientRect();
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    scale = dpr * (r.width < 700 ? .85 : .75);
+    W = Math.round(r.width * scale); H = Math.round(r.height * scale);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  }
+  addEventListener('resize', size); size();
+
+  const cl = (x, a, b) => Math.min(b, Math.max(a, x));
+  const ss = (a, b, x) => { const t = cl((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const mix = (a, b, t) => a + (b - a) * t;
+  let prog_ = 0;
+  function readScroll() {
+    const r = story.getBoundingClientRect();
+    prog_ = cl(-r.top / Math.max(1, r.height - innerHeight), 0, 1);
+    nav.classList.toggle('solid', pick.scrollTop > 30);
+    const p = prog_;
+    const hOut = ss(.03, .14, p);
+    hero.style.opacity = 1 - hOut; hero.style.transform = `translateY(${-40 * hOut}px)`; hero.style.visibility = hOut > .99 ? 'hidden' : 'visible';
+    const c1 = ss(.26, .34, p) * (1 - ss(.48, .56, p)), c2 = ss(.62, .7, p);
+    cap1.style.opacity = c1; cap1.style.transform = `translateY(${20 * (1 - ss(.26, .34, p))}px)`;
+    cap2.style.opacity = c2; cap2.style.transform = `translateY(${20 * (1 - c2)}px)`;
+    hint.style.opacity = 1 - ss(0, .03, p);
+  }
+  pick.addEventListener('scroll', readScroll, { passive: true }); readScroll();
+
+  let t0 = performance.now(), running = true, visible = true;
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { root: pick }).observe(story);
+  document.addEventListener('visibilitychange', () => { running = !document.hidden; });
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!running || !visible || pick.hidden) return;
+    const t = reduce ? 9.5 : (now - t0) / 1000;
+    const p = prog_;
+    const mob = innerWidth < 900;
+    // screen placement in CSS px (y measured from the top), then converted
+    const vw = innerWidth, vh = room.clientHeight;
+    let hx, hy, hw;
+    if (mob) { hw = vw * .43; hx = vw * .5; hy = vh - hw * 9 / 16 - vh * .06; }
+    else { hw = vw * .2; hx = vw * .73; hy = vh * .52; }
+    const cw = mob ? vw * .44 : Math.min(vw * .3, vh * .3 * 16 / 9), cx = vw * .5, cy = vh * (mob ? .42 : .44);
+    const m = ss(.08, .32, p);
+    const sx = mix(hx, cx, m), sy = mix(hy, cy, m), sw = mix(hw, cw, m);
+    const glow = mix(1, .0, ss(.14, .32, p)) + ss(.52, .72, p) * 1.15;
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(0, 0, TW, TH);
+    gl.useProgram(P1); gl.uniform2f(U1.R, TW, TH); gl.uniform1f(U1.T, t);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindTexture(gl.TEXTURE_2D, tex); gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H);
+    gl.useProgram(P2);
+    gl.uniform2f(U2.R, W, H);
+    gl.uniform4f(U2.S, sx * scale, H - sy * scale, sw * scale, sw * 9 / 16 * scale);
+    gl.uniform1f(U2.G, glow); gl.uniform1f(U2.T, t); gl.uniform1i(U2.X, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
