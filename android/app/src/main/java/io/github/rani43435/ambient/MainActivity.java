@@ -279,24 +279,37 @@ public class MainActivity extends Activity {
         float d = getResources().getDisplayMetrics().density;
         android.widget.LinearLayout box = new android.widget.LinearLayout(this);
         box.setOrientation(android.widget.LinearLayout.VERTICAL);
-        int pad = (int) (22 * d);
+        int pad = (int) (18 * d);
         box.setPadding(pad, pad, pad, pad);
-        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-        bg.setColor(0xF0141518); bg.setCornerRadius(18 * d); bg.setStroke((int) d, 0xFF34373D);
+        // Same look as the site and the desktop app: dark glass, mint-to-blue edge
+        android.graphics.drawable.GradientDrawable edge = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TL_BR, new int[]{0xAA7FE3B0, 0x22FFFFFF, 0xAA7C9CFF});
+        edge.setCornerRadius(20 * d);
+        android.graphics.drawable.GradientDrawable fill = new android.graphics.drawable.GradientDrawable();
+        fill.setColor(0xF70E0F13); fill.setCornerRadius(19 * d);
+        android.graphics.drawable.LayerDrawable bg = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{edge, fill});
+        int e1 = Math.max(1, (int) d); bg.setLayerInset(1, e1, e1, e1, e1);
         box.setBackground(bg);
 
-        android.widget.CheckBox on = new android.widget.CheckBox(this);
+        android.widget.Switch on = new android.widget.Switch(this);
         on.setText("Ambient glow");
-        on.setTextColor(0xFFF2F2EF); on.setTextSize(18);
-        on.setButtonTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
+        on.setTextColor(0xFFF2F2EF); on.setTextSize(17);
+        on.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        int[][] st = {{android.R.attr.state_checked}, {}};
+        on.setThumbTintList(new android.content.res.ColorStateList(st, new int[]{0xFF062016, 0xFFFFFFFF}));
+        on.setTrackTintList(new android.content.res.ColorStateList(st, new int[]{0xFF7FE3B0, 0x40FFFFFF}));
+        on.setTrackTintMode(android.graphics.PorterDuff.Mode.SRC);
         on.setChecked(cfg.optBoolean("on", true));
+        on.setPadding(0, 0, 0, (int) (6 * d));
+        on.setBackground(focusRing(d, 12));
         box.addView(on);
         android.widget.SeekBar amount = slider(box, "Strength", 0, 100, cfg.optInt("amount", 100), d);
         android.widget.SeekBar size = slider(box, "Video size", 50, 100, cfg.optInt("size", 80), d);
         android.widget.TextView hint = new android.widget.TextView(this);
-        hint.setText("Left / right to change · Back to close");
-        hint.setTextColor(0xFF9A9DA4); hint.setTextSize(13);
-        hint.setPadding(0, (int) (14 * d), 0, 0);
+        hint.setText("◀ ▶ change  ·  Back close");
+        hint.setTextColor(0x66F2F2EF); hint.setTextSize(12);
+        hint.setGravity(android.view.Gravity.CENTER);
+        hint.setPadding(0, (int) (12 * d), 0, 0);
         box.addView(hint);
 
         Runnable push = () -> {
@@ -310,7 +323,11 @@ public class MainActivity extends Activity {
         };
         on.setOnCheckedChangeListener((b, v) -> push.run());
         android.widget.SeekBar.OnSeekBarChangeListener l = new android.widget.SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(android.widget.SeekBar s, int p, boolean u) { push.run(); }
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean u) {
+                Object[] tag = (Object[]) s.getTag();
+                ((android.widget.TextView) tag[0]).setText(((Integer) tag[1] + p) + "%");
+                push.run();
+            }
             public void onStartTrackingTouch(android.widget.SeekBar s) {}
             public void onStopTrackingTouch(android.widget.SeekBar s) {}
         };
@@ -323,7 +340,7 @@ public class MainActivity extends Activity {
         android.view.Window w = panel.getWindow();
         if (w != null) {
             w.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
-            w.setLayout((int) (380 * d), ViewGroup.LayoutParams.WRAP_CONTENT);
+            w.setLayout((int) (340 * d), ViewGroup.LayoutParams.WRAP_CONTENT);
             w.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
             WindowManager.LayoutParams a = w.getAttributes();
             a.x = (int) (24 * d); a.y = (int) (24 * d); a.dimAmount = 0f;
@@ -335,20 +352,74 @@ public class MainActivity extends Activity {
         amount.requestFocus();
     }
 
+    /** A card per setting: label and value on top, a mint-to-blue slider below. */
     private android.widget.SeekBar slider(android.widget.LinearLayout box, String label, int min, int max, int value, float d) {
+        android.widget.LinearLayout card = new android.widget.LinearLayout(this);
+        card.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int p = (int) (12 * d);
+        card.setPadding(p, p, p, (int) (6 * d));
+        android.graphics.drawable.GradientDrawable cbg = new android.graphics.drawable.GradientDrawable();
+        cbg.setColor(0x0AFFFFFF); cbg.setCornerRadius(14 * d); cbg.setStroke(Math.max(1, (int) d), 0x12FFFFFF);
+        card.setBackground(cbg);
+        android.widget.LinearLayout top = new android.widget.LinearLayout(this);
         android.widget.TextView t = new android.widget.TextView(this);
-        t.setText(label); t.setTextColor(0xFFF2F2EF); t.setTextSize(16);
-        t.setPadding(0, (int) (16 * d), 0, (int) (4 * d));
-        box.addView(t);
+        t.setText(label); t.setTextColor(0x99F2F2EF); t.setTextSize(13);
+        top.addView(t, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        final android.widget.TextView v = new android.widget.TextView(this);
+        v.setTextColor(0xFFF2F2EF); v.setTextSize(13);
+        v.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        top.addView(v);
+        card.addView(top);
         android.widget.SeekBar s = new android.widget.SeekBar(this);
         s.setMax(max - min);
         s.setKeyProgressIncrement(5);
         s.setProgress(Math.max(0, Math.min(max - min, value - min)));
-        s.setProgressTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
-        s.setThumbTintList(android.content.res.ColorStateList.valueOf(0xFF7FE3B0));
+        v.setText((min + s.getProgress()) + "%");
+        // track: grey background, mint-to-blue fill
+        android.graphics.drawable.GradientDrawable back = new android.graphics.drawable.GradientDrawable();
+        back.setColor(0x24FFFFFF); back.setCornerRadius(4 * d);
+        android.graphics.drawable.GradientDrawable fg = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT, new int[]{0xFF7FE3B0, 0xFF7C9CFF});
+        fg.setCornerRadius(4 * d);
+        android.graphics.drawable.LayerDrawable track = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{
+                back, new android.graphics.drawable.ClipDrawable(fg, android.view.Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL)});
+        track.setId(0, android.R.id.background); track.setId(1, android.R.id.progress);
+        int mid = (int) (8 * d);
+        track.setLayerInset(0, 0, mid, 0, mid); track.setLayerInset(1, 0, mid, 0, mid);
+        s.setProgressDrawable(track);
+
+        // thumb: white dot that grows a mint ring when the remote focuses it
+        android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
+        dot.setShape(android.graphics.drawable.GradientDrawable.OVAL); dot.setColor(0xFFFFFFFF);
+        dot.setSize((int) (16 * d), (int) (16 * d));
+        android.graphics.drawable.GradientDrawable dotF = new android.graphics.drawable.GradientDrawable();
+        dotF.setShape(android.graphics.drawable.GradientDrawable.OVAL); dotF.setColor(0xFFFFFFFF);
+        dotF.setStroke((int) (4 * d), 0x997FE3B0); dotF.setSize((int) (22 * d), (int) (22 * d));
+        android.graphics.drawable.StateListDrawable thumb = new android.graphics.drawable.StateListDrawable();
+        thumb.addState(new int[]{android.R.attr.state_focused}, dotF);
+        thumb.addState(new int[]{}, dot);
+        s.setThumb(thumb);
+        s.setSplitTrack(false);
+        s.setBackground(null);
         s.setFocusable(true);
-        box.addView(s, new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (40 * d)));
+        s.setOnFocusChangeListener((x, f) -> cbg.setStroke(Math.max(1, (int) d), f ? 0xCCF2F2EF : 0x12FFFFFF));
+        card.addView(s, new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (34 * d)));
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = (int) (10 * d);
+        box.addView(card, lp);
+        final int base = min;
+        s.setTag(new Object[]{v, base});
         return s;
+    }
+
+    /** Light outline when the remote focuses a row. */
+    private android.graphics.drawable.Drawable focusRing(float d, int r) {
+        android.graphics.drawable.GradientDrawable f = new android.graphics.drawable.GradientDrawable();
+        f.setCornerRadius(r * d); f.setStroke(Math.max(1, (int) d), 0xCCF2F2EF); f.setColor(0x14FFFFFF);
+        android.graphics.drawable.StateListDrawable sl = new android.graphics.drawable.StateListDrawable();
+        sl.addState(new int[]{android.R.attr.state_focused}, f);
+        sl.addState(new int[]{}, new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        return sl;
     }
 
     private String readAsset(String name) {
