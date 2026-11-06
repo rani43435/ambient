@@ -95,7 +95,7 @@
       const i = ((horiz ? at : a) * SW + (horiz ? a : at)) * 4;
       if (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2] > 24) n++;
     }
-    return n >= (to - from) * 0.5;
+    return n >= (to - from) * 0.3;
   }
   function lineDark(px, horiz, at, from, to) {
     for (let a = from; a < to; a++) {
@@ -121,7 +121,7 @@
     for (const k in det) {
       const seen = barsSeen[k];
       if (det[k] <= BARS[k]) { BARS[k] = det[k]; seen[1] = 0; }
-      else if (det[k] === seen[0]) { if (++seen[1] >= 6) BARS[k] = det[k]; }
+      else if (Math.abs(det[k] - seen[0]) <= 1) { seen[0] = Math.min(seen[0], det[k]); if (++seen[1] >= 6) BARS[k] = seen[0]; }
       else { seen[0] = det[k]; seen[1] = 1; }
     }
   }
@@ -162,7 +162,7 @@
         let col = dx < dy ? (x < GW / 2 ? left[y] : right[y]) : (y < GH / 2 ? top[x] : bottom[x]);
         col = boost(col);
         const j = (y * GW + x) * 3, o = (y * GW + x) * 4;
-        for (let c = 0; c < 3; c++) { cur[j + c] += (col[c] - cur[j + c]) * 0.35; out.data[o + c] = cur[j + c]; }
+        for (let c = 0; c < 3; c++) { cur[j + c] += (col[c] - cur[j + c]) * 0.1; // calm: ~1 s to follow a cut, like YouTube's ambient mode out.data[o + c] = cur[j + c]; }
         out.data[o + 3] = 255;
       }
     }

@@ -5,8 +5,8 @@
   <key>CFBundleName</key><string>Ambient Video</string>
   <key>CFBundleDisplayName</key><string>Ambient Video</string>
   <key>CFBundleIdentifier</key><string>io.github.rani43435.ambient.mac</string>
-  <key>CFBundleVersion</key><string>1.5</string>
-  <key>CFBundleShortVersionString</key><string>1.5</string>
+  <key>CFBundleVersion</key><string>1.6</string>
+  <key>CFBundleShortVersionString</key><string>1.6</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>launcher</string>
   <key>CFBundleIconFile</key><string>icon</string>
