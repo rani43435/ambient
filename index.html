@@ -495,6 +495,15 @@ let last = 0;
 // Bars shrink at once when the picture reaches into them, but only grow after they
 // have been seen for a while, so a dark scene isn't mistaken for a bar.
 const BARS = { t: 0, b: 0, l: 0, r: 0 }, barsSeen = { t: [0, 0], b: [0, 0], l: [0, 0], r: [0, 0] };
+// The picture's edge right after a bar should be mostly lit (not text on a black intro).
+function lineLit(px, horiz, at, from, to) {
+  let n = 0;
+  for (let a = from; a < to; a++) {
+    const i = ((horiz ? at : a) * SW + (horiz ? a : at)) * 4;
+    if (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2] > 24) n++;
+  }
+  return n >= (to - from) * 0.5;
+}
 function lineDark(px, horiz, at, from, to) {
   for (let a = from; a < to; a++) {
     const i = ((horiz ? at : a) * SW + (horiz ? a : at)) * 4;
@@ -511,6 +520,11 @@ function findBars(px) {
   while (l < maxH && lineDark(px, false, l, t, SH - b)) l++;
   while (r < maxH && lineDark(px, false, SW - 1 - r, t, SH - b)) r++;
   const det = { t, b, l: l >= maxH ? 0 : l, r: r >= maxH ? 0 : r };
+  // a side whose edge isn't solid picture tells us nothing this frame
+  if (t && !lineLit(px, true, t, 0, SW)) det.t = BARS.t;
+  if (b && !lineLit(px, true, SH - 1 - b, 0, SW)) det.b = BARS.b;
+  if (det.l && !lineLit(px, false, l, t, SH - b)) det.l = BARS.l;
+  if (det.r && !lineLit(px, false, SW - 1 - r, t, SH - b)) det.r = BARS.r;
   for (const k in det) {
     const seen = barsSeen[k];
     if (det[k] <= BARS[k]) { BARS[k] = det[k]; seen[1] = 0; }
@@ -554,7 +568,7 @@ function sampleEdges() {
     s.drawImage(cap, (r.left + 2) * kx, (r.top + 2) * ky, (r.width - 4) * kx, (r.height - 4) * ky, 0, 0, SW, SH);
   } else s.drawImage(video, 0, 0, SW, SH);
   const px = s.getImageData(0, 0, SW, SH).data;
-  findBars(px);
+  if (!(mode === 'yt' && clipNow)) findBars(px); // YouTube: locked once cut (see paint)
   const top = strip(px, GW, 'top'), bottom = strip(px, GW, 'bottom');
   const left = strip(px, GH, 'left'), right = strip(px, GH, 'right');
   for (let y = 0; y < GH; y++) {
@@ -594,15 +608,16 @@ function setClip(vid, v, c) {
 }
 
 // Our own player: cut the bars off the video and centre the glow on the real picture.
-let lastCrop = 0;
+let lastCrop = 0, ytVid = null;
 function cropFile() {
-  const v = video.getBoundingClientRect(); if (!v.width || !v.height) return;
-  const c = picRect(video, v); setClip(video, v, c);
+  const el = mode === 'yt' ? $('yt') : video;
+  const v = el.getBoundingClientRect(); if (!v.width || !v.height) return;
+  const c = picRect(el, v); setClip(el, v, c);
   const sp = parseFloat(getComputedStyle(stage).getPropertyValue('--spread')) || 1.8;
   glow.style.width = c.w + 'px'; glow.style.aspectRatio = c.w + ' / ' + c.h;
   glow.style.transform = `translate(${c.x + c.w / 2 - (v.left + v.width / 2)}px, ${c.y + c.h / 2 - (v.top + v.height / 2)}px) scale(${sp})`;
 }
-function uncrop() { setClip(video, null, null); glow.style.width = glow.style.aspectRatio = glow.style.transform = ''; }
+function uncrop() { setClip(video, null, null); setClip($('yt'), null, null); glow.style.width = glow.style.aspectRatio = glow.style.transform = ''; }
 let url = null;
 
 function openPicker() { $('file').click(); }
@@ -824,8 +839,14 @@ function paint() {
     sampleEdges();
     last = now;
   }
-  if (mode === 'file' && video.readyState >= 2 && now - lastCrop > 80) { cropFile(); lastCrop = now; }
-  else if (mode === 'yt' && clipNow) uncrop();
+  if (mode === 'yt') {
+    // YouTube/Vimeo: the colours come from a capture of this tab, so once the bars are cut
+    // that capture can't see them any more. Keep the cut for the whole video and look
+    // again from scratch when a new video starts.
+    const id = yt && yt.getVideoData ? (yt.getVideoData() || {}).video_id : '';
+    if (id !== ytVid) { ytVid = id; for (const k in BARS) { BARS[k] = 0; barsSeen[k][1] = 0; } uncrop(); }
+  }
+  if ((mode === 'file' ? video.readyState >= 2 : cap.readyState >= 2) && now - lastCrop > 80) { cropFile(); lastCrop = now; }
   requestAnimationFrame(paint);
 }
 paint();

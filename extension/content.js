@@ -21,6 +21,15 @@
   // Bars shrink at once when the picture reaches into them, but only grow after they
   // have been seen for a while, so a dark scene isn't mistaken for a bar.
   const BARS = { t: 0, b: 0, l: 0, r: 0 }, barsSeen = { t: [0, 0], b: [0, 0], l: [0, 0], r: [0, 0] };
+  // The picture's edge right after a bar should be mostly lit (not text on a black intro).
+  function lineLit(px, horiz, at, from, to) {
+    let n = 0;
+    for (let a = from; a < to; a++) {
+      const i = ((horiz ? at : a) * SW + (horiz ? a : at)) * 4;
+      if (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2] > 24) n++;
+    }
+    return n >= (to - from) * 0.5;
+  }
   function lineDark(px, horiz, at, from, to) {
     for (let a = from; a < to; a++) {
       const i = ((horiz ? at : a) * SW + (horiz ? a : at)) * 4;
@@ -37,6 +46,11 @@
     while (l < maxH && lineDark(px, false, l, t, SH - b)) l++;
     while (r < maxH && lineDark(px, false, SW - 1 - r, t, SH - b)) r++;
     const det = { t, b, l: l >= maxH ? 0 : l, r: r >= maxH ? 0 : r };
+    // a side whose edge isn't solid picture tells us nothing this frame
+    if (t && !lineLit(px, true, t, 0, SW)) det.t = BARS.t;
+    if (b && !lineLit(px, true, SH - 1 - b, 0, SW)) det.b = BARS.b;
+    if (det.l && !lineLit(px, false, l, t, SH - b)) det.l = BARS.l;
+    if (det.r && !lineLit(px, false, SW - 1 - r, t, SH - b)) det.r = BARS.r;
     for (const k in det) {
       const seen = barsSeen[k];
       if (det[k] <= BARS[k]) { BARS[k] = det[k]; seen[1] = 0; }
