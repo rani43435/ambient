@@ -155,19 +155,39 @@
     g.putImageData(out, 0, 0);
   }
 
+  // Where the picture really is on screen: inside the element (object-fit: contain)
+  // and inside any black bars baked into the video. The bars get cut off (clip-path)
+  // and the glow sits right around the real picture.
+  function picRect(vid, v) {
+    let x = v.left, y = v.top, w = v.width, h = v.height;
+    const vw = vid.videoWidth, vh = vid.videoHeight;
+    if (vw && vh) { const k = Math.min(w / vw, h / vh), fw = vw * k, fh = vh * k; x += (w - fw) / 2; y += (h - fh) / 2; w = fw; h = fh; }
+    const f = (n, of) => (n ? (n + 0.6) / of : 0); // a little extra so no sliver of bar shows
+    const t = f(BARS.t, SH), b = f(BARS.b, SH), l = f(BARS.l, SW), r = f(BARS.r, SW);
+    return { x: x + w * l, y: y + h * t, w: w * (1 - l - r), h: h * (1 - t - b) };
+  }
+  let clipNow = '';
+  function setClip(vid, v, c) {
+    const p = (a) => Math.max(0, a).toFixed(2) + '%';
+    const s = c ? `inset(${p((c.y - v.top) / v.height * 100)} ${p((v.right - c.x - c.w) / v.width * 100)} ${p((v.bottom - c.y - c.h) / v.height * 100)} ${p((c.x - v.left) / v.width * 100)} round 6px)` : '';
+    if (s !== clipNow || vid.style.clipPath !== s) { clipNow = s; vid.style.clipPath = s; }
+  }
+
   // Keep the glow centred on the video, SPREAD times its size (the player box clips the rest).
   function place() {
     const p = host.getBoundingClientRect(), v = video.getBoundingClientRect();
     if (!v.width || !v.height) return;
-    const w = v.width * SPREAD, h = v.height * SPREAD;
+    const c = picRect(video, v); setClip(video, v, c);
+    const w = c.w * SPREAD, h = c.h * SPREAD;
     const ox = p.left + host.clientLeft - host.scrollLeft, oy = p.top + host.clientTop - host.scrollTop;
     glow.style.width = w + 'px'; glow.style.height = h + 'px';
-    glow.style.transform = `translate(${v.left - ox + v.width / 2 - w / 2}px, ${v.top - oy + v.height / 2 - h / 2}px)`;
+    glow.style.transform = `translate(${c.x - ox + c.w / 2 - w / 2}px, ${c.y - oy + c.h / 2 - h / 2}px)`;
   }
 
   function apply() {
     if (!host) return;
     host.classList.toggle('av-on', !!cfg.on);
+    if (!cfg.on && video) setClip(video, null, null);
     host.style.setProperty('--av-scale', cfg.size / 100);
     glow.style.opacity = cfg.amount / 100;
     lastT = -1;
@@ -273,7 +293,8 @@
   }
   function detach() {
     if (host) host.classList.remove('av-on', 'av-host');
-    if (video) video.classList.remove('av-video', 'av-pos');
+    if (video) { video.classList.remove('av-video', 'av-pos'); setClip(video, null, null); }
+    for (const k in BARS) { BARS[k] = 0; barsSeen[k][1] = 0; }
     glow.remove(); btn.remove(); panel.remove();
     host = null; video = null;
   }
@@ -290,7 +311,7 @@
       host.classList.add('av-host');
       video.classList.add('av-video');
       if (getComputedStyle(video).position === 'static') video.classList.add('av-pos');
-      v.addEventListener('seeked', () => (lastT = -1));
+      v.addEventListener('seeked', () => (lastT = -1)); v.addEventListener('loadstart', () => { for (const k in BARS) { BARS[k] = 0; barsSeen[k][1] = 0; } });
     }
     // Glow goes first in the box so the video paints on top of it.
     if (glow.parentNode !== host) host.insertBefore(glow, host.firstChild);
