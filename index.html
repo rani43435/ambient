@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#000000">
 <title>Ambient Video</title>
+<meta name="description" content="Ambient Video paints the colours of what you watch softly around the screen. Free for Mac, Windows and Chrome.">
+<meta property="og:title" content="Ambient Video — Let the picture spill into the room">
+<meta property="og:description" content="Ambilight for every screen. Free for Mac, Windows and Chrome.">
+<meta property="og:image" content="https://rani43435.github.io/ambient/og.png">
+<meta property="og:url" content="https://rani43435.github.io/ambient/">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -854,7 +861,7 @@ vec3 sunset(vec2 u,float t){
   vec2 sp=vec2(.62,.5+.03*sin(t*.2));float d=length((u-sp)*vec2(1.78,1.));
   sky=mix(sky,vec3(1.,.86,.55),smoothstep(.13,.1,d))+vec3(1.,.5,.2)*exp(-d*5.)*.7;
   float hz=.4;
-  if(u.y<hz){float y=hz-u.y;float w=smoothstep(.2,1.,sin(u.x*22.+t*.8+sin(u.y*60.+t)*1.5)*.5+.5);
+  if(u.y<hz){float y=hz-u.y;float w=smoothstep(.35,1.,sin(y*140.+sin(u.x*9.+t*.7)*1.6-t*1.5)*.5+.5);
     vec3 sea=mix(vec3(.08,.06,.18),vec3(.5,.18,.12),smoothstep(.4,0.,y));
     float refl=exp(-abs(u.x-sp.x)*7.)*smoothstep(.0,.35,1.-y*2.)*w;
     return sea+vec3(1.,.6,.25)*refl*.8;}
