@@ -124,7 +124,7 @@
   html[data-ambient-ext] #pick .getext, html.not-chrome #pick .getext { display: none; }
 
   /* ---------- Hero + scroll story share one live canvas ---------- */
-  .story { position: relative; height: 330vh; }
+  .story { position: relative; height: 210vh; }
   .room { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
   #roomgl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .room .fallback { position: absolute; inset: 0; display: none;
@@ -900,11 +900,20 @@ void main(){vec2 u=gl_FragCoord.xy/uR;float t=uT;
   u.x+=.01*sin(t*.1);
   vec3 c=mix(sc(a,u,t),sc(b,u,t),f);
   gl_FragColor=vec4(clamp(c,0.,1.),1.);}`;
+  // Pass 1b: a tiny, well-blurred copy of the frame. The glow reads from this so its
+  // colours follow the nearest edge of the picture and never band or seam.
+  const FS_BLUR = `precision highp float;
+uniform vec2 uR; uniform sampler2D uTex;
+void main(){vec2 u=gl_FragCoord.xy/uR; vec2 o=1.25/uR; vec3 c=vec3(0.); float w=0.;
+  for(int j=-2;j<=2;j++)for(int i=-2;i<=2;i++){vec2 q=vec2(float(i),float(j)); float k=exp(-dot(q,q)*.35);
+    c+=texture2D(uTex,clamp(u+q*o,.001,.999),1.).rgb*k; w+=k;}
+  gl_FragColor=vec4(c/w,1.);}`;
   // Pass 2: the room
   const FS_ROOM = `precision highp float;
-uniform vec2 uR; uniform vec4 uS; uniform float uG; uniform float uT; uniform sampler2D uTex;
+uniform vec2 uR; uniform vec4 uS; uniform float uG; uniform float uT; uniform sampler2D uTex; uniform sampler2D uBlur;
 float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
 vec3 tx(vec2 uv,float b){return texture2D(uTex,clamp(uv,.002,.998),b).rgb;}
+vec3 bl(vec2 uv){return texture2D(uBlur,clamp(uv,.02,.98)).rgb;}
 void main(){
   vec2 p=gl_FragCoord.xy; vec2 c=uS.xy; vec2 hs=uS.zw;
   vec2 lo=c-hs, hi=c+hs;
@@ -915,25 +924,22 @@ void main(){
   vec2 e=abs(p-c)-hs+6.; float sd=length(max(e,0.))+min(max(e.x,e.y),0.)-6.;
   vec2 uv=(p-lo)/(hs*2.);
   float floorY=lo.y-hs.y*.42;
-  // glow colour: project the point back onto the screen along the ray from its centre,
-  // then read heavily blurred mip levels of the frame there
-  float mx=max(abs(rel.x),abs(rel.y)); vec2 r1=rel/max(mx,1.);
-  vec2 eu=.5+r1*.42, mu=.5+r1*.22;
-  vec3 g=tx(eu,7.)*.55+tx(mu,8.)*.3+tx(vec2(.5),9.)*.15;
-  float spread=hs.x*1.1;
-  float fall=exp(-d/spread)*.9+.32/(1.+pow(d/spread,2.));
-  vec3 glow=g*fall*uG*1.3;
-  glow+=tx(vec2(.5),9.)*.05*exp(-d/(hs.x*.5));
-  col+=glow;
-  // floor: reflection of the screen + glow
-  if(p.y<floorY){
-    float fy=floorY-p.y;
-    vec2 ruv=vec2((p.x-lo.x)/(hs.x*2.), ((floorY-p.y)*1.3)/(hs.y*2.));
-    float inside=smoothstep(-.05,.02,ruv.x)*smoothstep(1.05,.98,ruv.x)*smoothstep(1.,.0,ruv.y);
-    vec3 r=tx(vec2(ruv.x,ruv.y),3.5);
-    col+=r*inside*(.10+.32*uG)*exp(-fy/(hs.y*1.2));
-    col*=1.+.15*uG;
-  }
+  // glow colour: walk back toward the screen along a smooth (rounded) ray and read the
+  // blurred frame right at its edge, so top glows like the top, sides like the sides
+  vec2 ar=abs(rel)+1e-4; float mx=pow(pow(ar.x,5.)+pow(ar.y,5.),.2); vec2 r1=rel/max(mx,1.);
+  vec3 avg=tx(vec2(.5),12.);
+  vec3 g=bl(.5+r1*.47)*.72+bl(.5+r1*.3)*.18+avg*.10;
+  float spread=hs.x*1.05;
+  float fall=exp(-d/spread)*.9+.3/(1.+pow(d/spread,2.));
+  col+=g*fall*uG*1.25+avg*.05*exp(-d/(hs.x*.5));
+  // floor: soft reflection of the screen + a gentle lift, faded in (no hard line)
+  float fl=smoothstep(floorY+hs.y*.08,floorY-hs.y*.12,p.y);
+  float fy=max(floorY-p.y,0.);
+  vec2 ruv=vec2((p.x-lo.x)/(hs.x*2.), (fy*1.3)/(hs.y*2.));
+  float inside=smoothstep(-.08,.04,ruv.x)*smoothstep(1.08,.96,ruv.x)*smoothstep(1.,.0,ruv.y);
+  vec3 r=bl(vec2(ruv.x,ruv.y*.5));
+  col+=r*inside*fl*(.08+.28*uG)*exp(-fy/(hs.y*1.2));
+  col*=1.+.12*uG*fl;
   // screen
   if(sd<0.){ col=tx(uv,0.)*1.02; col+=.03*(1.-smoothstep(0.,.25,uv.y)); }
   float bez=smoothstep(1.5,0.,abs(sd));
@@ -948,8 +954,8 @@ void main(){
   if (!gl) return;
   function sh(t, s) { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(o)); return null; } return o; }
   function prog(fs) { const p = gl.createProgram(); const a = sh(gl.VERTEX_SHADER, VS), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null; gl.attachShader(p, a); gl.attachShader(p, b); gl.bindAttribLocation(p, 0, 'p'); gl.linkProgram(p); return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null; }
-  const P1 = prog(FS_SCENE), P2 = prog(FS_ROOM);
-  if (!P1 || !P2) { room.classList.add('nogl'); return; }
+  const P1 = prog(FS_SCENE), P2 = prog(FS_ROOM), P3 = prog(FS_BLUR);
+  if (!P1 || !P2 || !P3) { room.classList.add('nogl'); return; }
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -962,8 +968,17 @@ void main(){
   const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const BW = 32, BH = 16;
+  const btex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, btex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, BW, BH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const bfb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, bfb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, btex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const U3 = { R: gl.getUniformLocation(P3, 'uR'), X: gl.getUniformLocation(P3, 'uTex') };
   const U1 = { R: gl.getUniformLocation(P1, 'uR'), T: gl.getUniformLocation(P1, 'uT') };
-  const U2 = { R: gl.getUniformLocation(P2, 'uR'), S: gl.getUniformLocation(P2, 'uS'), G: gl.getUniformLocation(P2, 'uG'), T: gl.getUniformLocation(P2, 'uT'), X: gl.getUniformLocation(P2, 'uTex') };
+  const U2 = { R: gl.getUniformLocation(P2, 'uR'), S: gl.getUniformLocation(P2, 'uS'), G: gl.getUniformLocation(P2, 'uG'), T: gl.getUniformLocation(P2, 'uT'), X: gl.getUniformLocation(P2, 'uTex'), B: gl.getUniformLocation(P2, 'uBlur') };
 
   let W = 0, H = 0, scale = 1;
   function size() {
@@ -978,18 +993,22 @@ void main(){
   const cl = (x, a, b) => Math.min(b, Math.max(a, x));
   const ss = (a, b, x) => { const t = cl((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   const mix = (a, b, t) => a + (b - a) * t;
-  let prog_ = 0;
+  let prog_ = 0, ps = 0, lastUI = -1;
+  // One short timeline: hero out → screen to centre, glow off → "without" → glow on → "with"
+  function applyUI(p) {
+    if (Math.abs(p - lastUI) < 1e-4) return; lastUI = p;
+    const hOut = ss(.02, .16, p);
+    hero.style.opacity = 1 - hOut; hero.style.transform = `translate3d(0,${-40 * hOut}px,0)`; hero.style.visibility = hOut > .99 ? 'hidden' : 'visible';
+    const a1 = ss(.24, .34, p), c1 = a1 * (1 - ss(.46, .54, p)), c2 = ss(.6, .72, p);
+    cap1.style.opacity = c1; cap1.style.transform = `translate3d(0,${20 * (1 - a1)}px,0)`;
+    cap2.style.opacity = c2; cap2.style.transform = `translate3d(0,${20 * (1 - c2)}px,0)`;
+    hint.style.opacity = 1 - ss(0, .04, p);
+  }
   function readScroll() {
     const r = story.getBoundingClientRect();
     prog_ = cl(-r.top / Math.max(1, r.height - innerHeight), 0, 1);
     nav.classList.toggle('solid', pick.scrollTop > 30);
-    const p = prog_;
-    const hOut = ss(.03, .14, p);
-    hero.style.opacity = 1 - hOut; hero.style.transform = `translateY(${-40 * hOut}px)`; hero.style.visibility = hOut > .99 ? 'hidden' : 'visible';
-    const c1 = ss(.26, .34, p) * (1 - ss(.48, .56, p)), c2 = ss(.62, .7, p);
-    cap1.style.opacity = c1; cap1.style.transform = `translateY(${20 * (1 - ss(.26, .34, p))}px)`;
-    cap2.style.opacity = c2; cap2.style.transform = `translateY(${20 * (1 - c2)}px)`;
-    hint.style.opacity = 1 - ss(0, .03, p);
+    if (!gl || reduce) { ps = prog_; applyUI(ps); }
   }
   pick.addEventListener('scroll', readScroll, { passive: true }); readScroll();
 
@@ -997,11 +1016,16 @@ void main(){
   new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { root: pick }).observe(story);
   document.addEventListener('visibilitychange', () => { running = !document.hidden; });
 
+  let last = performance.now();
   function frame(now) {
     requestAnimationFrame(frame);
-    if (!running || !visible || pick.hidden) return;
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    if (!running || !visible || pick.hidden) { ps = prog_; applyUI(ps); return; }
+    // ease toward the scroll position so wheel steps and trackpad jitter glide
+    ps += (prog_ - ps) * (1 - Math.exp(-dt * 9)); if (Math.abs(prog_ - ps) < 1e-4) ps = prog_;
+    applyUI(ps);
     const t = reduce ? 9.5 : (now - t0) / 1000;
-    const p = prog_;
+    const p = ps;
     const mob = innerWidth < 900;
     // screen placement in CSS px (y measured from the top), then converted
     const vw = innerWidth, vh = room.clientHeight;
@@ -1009,19 +1033,23 @@ void main(){
     if (mob) { hw = vw * .43; hx = vw * .5; hy = vh - hw * 9 / 16 - vh * .06; }
     else { hw = vw * .2; hx = vw * .73; hy = vh * .52; }
     const cw = mob ? vw * .44 : Math.min(vw * .3, vh * .3 * 16 / 9), cx = vw * .5, cy = vh * (mob ? .42 : .44);
-    const m = ss(.08, .32, p);
+    const m = ss(.04, .3, p);
     const sx = mix(hx, cx, m), sy = mix(hy, cy, m), sw = mix(hw, cw, m);
-    const glow = mix(1, .0, ss(.14, .32, p)) + ss(.52, .72, p) * 1.15;
+    const glow = mix(1, .0, ss(.1, .28, p)) + ss(.5, .7, p) * 1.1;
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(0, 0, TW, TH);
     gl.useProgram(P1); gl.uniform2f(U1.R, TW, TH); gl.uniform1f(U1.T, t);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.bindTexture(gl.TEXTURE_2D, tex); gl.generateMipmap(gl.TEXTURE_2D);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, bfb); gl.viewport(0, 0, BW, BH);
+    gl.useProgram(P3); gl.uniform2f(U3.R, BW, BH); gl.uniform1i(U3.X, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, btex); gl.activeTexture(gl.TEXTURE0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H);
     gl.useProgram(P2);
     gl.uniform2f(U2.R, W, H);
     gl.uniform4f(U2.S, sx * scale, H - sy * scale, sw * scale, sw * 9 / 16 * scale);
-    gl.uniform1f(U2.G, glow); gl.uniform1f(U2.T, t); gl.uniform1i(U2.X, 0);
+    gl.uniform1f(U2.G, glow); gl.uniform1f(U2.T, t); gl.uniform1i(U2.X, 0); gl.uniform1i(U2.B, 1);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   requestAnimationFrame(frame);
