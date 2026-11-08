@@ -162,7 +162,10 @@
         let col = dx < dy ? (x < GW / 2 ? left[y] : right[y]) : (y < GH / 2 ? top[x] : bottom[x]);
         col = boost(col);
         const j = (y * GW + x) * 3, o = (y * GW + x) * 4;
-        for (let c = 0; c < 3; c++) { cur[j + c] += (col[c] - cur[j + c]) * 0.045; // calm: ~2 s to follow a cut, like YouTube's ambient mode out.data[o + c] = cur[j + c]; }
+        for (let c = 0; c < 3; c++) {
+          cur[j + c] += (col[c] - cur[j + c]) * 0.045; // calm: ~2 s to follow a cut, like YouTube's ambient mode
+          out.data[o + c] = cur[j + c];
+        }
         out.data[o + 3] = 255;
       }
     }

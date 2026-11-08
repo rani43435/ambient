@@ -29,11 +29,11 @@ Made by Rani Marjy. More at https://rani43435.github.io/ambient/
 - Small promo tile 440×280: `promo-small-440x280.png`
 
 ## Privacy practices tab
-**Single purpose:** Adds an ambient (Ambilight-style) glow around the YouTube video player, made from the colours at the edge of the video.
+**Single purpose:** Adds an ambient (Ambilight-style) glow around videos (YouTube and other sites), made from the colours at the edge of the video.
 
 **Permission justification:**
 - `storage`: saves the user's glow settings (on/off, strength, video size) so they stay the same next time.
-- Host access (youtube.com via content script): the glow is drawn inside the YouTube player and reads the colours of the video that is playing.
+- Host access (all sites via content script): the glow is drawn around the video playing on the page (YouTube or any other site) and reads the colours of that video locally. Nothing is collected or sent.
 - Host access (rani43435.github.io/ambient): tells the Ambient Video website that the extension is installed, so the site can hide its "Add to Chrome" button. Nothing is read or sent.
 
 **Remote code:** No, I am not using remote code.
