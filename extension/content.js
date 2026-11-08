@@ -176,7 +176,7 @@
   panel.append(
     row('Ambient glow', el('input', { type: 'checkbox', 'data-k': 'on' })),
     row('Strength', el('input', { type: 'range', min: 0, max: 100, 'data-k': 'amount' })),
-    row('Video size', el('input', { type: 'range', min: 50, max: 100, 'data-k': 'size' })));
+    row('Video size', el('input', { type: 'range', min: 50, max: 150, 'data-k': 'size' })));
   btn.addEventListener('click', (e) => { e.stopPropagation(); panel.classList.toggle('open'); });
   ['click', 'mousedown', 'keydown', 'dblclick'].forEach((ev) => panel.addEventListener(ev, (e) => e.stopPropagation()));
   panel.addEventListener('input', (e) => {

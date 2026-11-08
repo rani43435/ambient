@@ -223,7 +223,7 @@
   panel.append(
     row('Ambient glow', el('input', { type: 'checkbox', 'data-k': 'on' })),
     row('Strength', el('input', { type: 'range', min: 0, max: 100, step: 5, 'data-k': 'amount' })),
-    row('Video size', el('input', { type: 'range', min: 50, max: 100, step: 5, 'data-k': 'size' })));
+    row('Video size', el('input', { type: 'range', min: 50, max: 150, step: 5, 'data-k': 'size' })));
   const stop = (e) => e.stopPropagation();
   ['click', 'mousedown', 'pointerdown', 'touchstart', 'dblclick'].forEach((ev) => panel.addEventListener(ev, stop));
   panel.addEventListener('keydown', (e) => {
