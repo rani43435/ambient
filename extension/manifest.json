@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ambient Video for YouTube",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Ambilight glow around any video: YouTube and other sites, read straight from the video. Also opens YouTube TV in Chrome.",
   "icons": {
     "16": "icon16.png",

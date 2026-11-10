@@ -210,9 +210,27 @@
     });
   } catch (e) {}
 
+  // The player on screen: the watch player, or on Shorts the active reel's player
+  // (the hidden watch player stays in the page there, so pick by what is visible).
+  function pickPlayer() {
+    const vis = (el) => { const r = el && el.getBoundingClientRect(); return r && r.width > 50 && r.height > 50 && r.bottom > 0 && r.top < innerHeight; };
+    if (location.pathname.startsWith('/shorts')) {
+      const a = document.querySelector('ytd-reel-video-renderer[is-active] .html5-video-player');
+      if (vis(a)) return a;
+      let best = null, area = 0;
+      document.querySelectorAll('.html5-video-player').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const h = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0), w = Math.min(r.right, innerWidth) - Math.max(r.left, 0);
+        if (h > 0 && w > 0 && h * w > area) { area = h * w; best = el; }
+      });
+      return best;
+    }
+    return document.getElementById('movie_player');
+  }
+
   // ---- Attach to the player (YouTube swaps pages and sometimes the <video> without reloading) ----
   function attach() {
-    const p = document.getElementById('movie_player');
+    const p = pickPlayer();
     const v = p && p.querySelector('video.html5-main-video, video');
     if (!p || !v) return;
     if (p !== player) {
@@ -227,7 +245,7 @@
     apply();
   }
   attach();
-  setInterval(attach, 1000);
+  setInterval(attach, 500);
   document.addEventListener('yt-navigate-finish', attach);
   document.addEventListener('fullscreenchange', () => { lastT = -1; });
 })();

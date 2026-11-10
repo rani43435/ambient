@@ -1,7 +1,8 @@
 /* Ambient Video: the glow lives inside YouTube's own player, so it works the same
    on the watch page, in theater mode and in full screen. */
-#movie_player.av-on { background: #000 !important; }
-#movie_player.av-on video.html5-main-video {
+#movie_player.av-on, .html5-video-player.av-on { background: #000 !important; }
+#movie_player.av-on video.html5-main-video,
+.html5-video-player.av-on video {
   transform: scale(var(--av-scale, 0.8)) !important;
   transform-origin: center center !important;
   border-radius: 6px;
@@ -11,7 +12,7 @@
   -webkit-mask-image: radial-gradient(closest-side, #000 68%, transparent);
   mask-image: radial-gradient(closest-side, #000 68%, transparent);
 }
-#movie_player.av-on #av-glow { display: block; }
+#movie_player.av-on #av-glow, .html5-video-player.av-on #av-glow { display: block; }
 
 /* Button in YouTube's control bar + small panel (both work in full screen) */
 .av-btn.ytp-button { display: inline-flex !important; align-items: center; justify-content: center; vertical-align: top; }
