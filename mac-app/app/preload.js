@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('AmbientBridge', {
   get: () => ipcRenderer.sendSync('cfg-get'),
   set: (json) => ipcRenderer.send('cfg-set', String(json).slice(0, 500)),
   panel: () => ipcRenderer.send('panel'),
+  // a screenshot of part of the page, when the page may not read a video itself
+  capture: (r) => ipcRenderer.invoke('capture', r),
 });
 const code = fs.readFileSync(path.join(__dirname, 'ambient.js'), 'utf8');
 webFrame.executeJavaScript(code).catch(() => {});

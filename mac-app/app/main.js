@@ -34,6 +34,17 @@ function saveCfg(part) {
 ipcMain.on('cfg-get', (e) => { e.returnValue = JSON.stringify(cfg); });
 ipcMain.on('cfg-set', (e, json) => { try { saveCfg(JSON.parse(json)); } catch (err) {} });
 ipcMain.on('panel', () => togglePanel());
+// The glow reads the video's edges; when a site won't let the page read its video,
+// the page asks for a small screenshot of the video's area instead (BGRA pixels).
+ipcMain.handle('capture', async (e, r) => {
+  try {
+    const n = (v) => Math.max(0, Math.round(+v || 0));
+    const rect = { x: n(r.x), y: n(r.y), width: Math.max(1, n(r.width)), height: Math.max(1, n(r.height)) };
+    const img = await e.sender.capturePage(rect);
+    if (img.isEmpty()) return null;
+    return img.resize({ width: Math.max(1, n(r.w) || 96), height: Math.max(1, n(r.h) || 54), quality: 'good' }).toBitmap();
+  } catch (err) { return null; }
+});
 ipcMain.on('panel-close', () => { if (panel && !panel.isDestroyed()) panel.hide(); });
 ipcMain.on('go-home', () => { if (panel && !panel.isDestroyed()) panel.hide(); go(HOME); if (win) win.focus(); });
 
@@ -72,6 +83,11 @@ function createWindow() {
     const want = isYtTv(t) ? TV_UA : defaultUA;
     if (t !== url || want !== win.webContents.getUserAgent()) { e.preventDefault(); go(t); }
   });
+  // Backup: make sure the glow script runs in every page and frame (it ignores a second start).
+  const glowCode = fs.readFileSync(path.join(__dirname, 'ambient.js'), 'utf8');
+  const inject = () => { for (const f of win.webContents.mainFrame.framesInSubtree) f.executeJavaScript(glowCode).catch(() => {}); };
+  win.webContents.on('dom-ready', inject);
+  win.webContents.on('did-frame-finish-load', inject);
   win.on('page-title-updated', (e) => { e.preventDefault(); win.setTitle('Ambient Video'); });
   win.on('move', placePanel);
   win.on('resize', placePanel);

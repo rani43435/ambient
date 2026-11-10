@@ -149,10 +149,35 @@
     const l = 0.299 * r + 0.587 * gg + 0.114 * b;
     return [r, gg, b].map((v) => Math.max(0, Math.min(255, (l + (v - l) * 1.8) * 1.3)));
   }
+  // Some players hand the page a video it isn't allowed to read (e.g. a cross-origin
+  // stream; this happens with YouTube TV on Windows). Then the app grabs the picture for
+  // us (a screenshot of just the video's area), so the glow and the size still work.
+  const canCapture = !!(bridge && bridge.capture) && window.top === window;
+  let useCapture = false, capBusy = false;
   function sampleEdges() {
+    if (useCapture) { captureFrame(); return; }
     let px;
     try { s.drawImage(video, 0, 0, SW, SH); px = s.getImageData(0, 0, SW, SH).data; }
-    catch (e) { blocked.add(video); detach(); return; }
+    catch (e) {
+      if (canCapture) { useCapture = true; captureFrame(); return; }
+      blocked.add(video); detach(); return;
+    }
+    paintFrom(px);
+  }
+  function captureFrame() {
+    if (capBusy || !video) return;
+    const r = video.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    capBusy = true;
+    bridge.capture({ x: r.left, y: r.top, width: r.width, height: r.height, w: SW, h: SH }).then((buf) => {
+      capBusy = false;
+      if (!buf || buf.length < SW * SH * 4) return;
+      const px = new Uint8ClampedArray(SW * SH * 4);
+      for (let i = 0; i < px.length; i += 4) { px[i] = buf[i + 2]; px[i + 1] = buf[i + 1]; px[i + 2] = buf[i]; px[i + 3] = 255; } // BGRA -> RGBA
+      paintFrom(px);
+    }).catch(() => { capBusy = false; });
+  }
+  function paintFrom(px) {
     findBars(px);
     const top = strip(px, GW, 'top'), bottom = strip(px, GW, 'bottom');
     const left = strip(px, GH, 'left'), right = strip(px, GH, 'right');
@@ -162,7 +187,8 @@
         let col = dx < dy ? (x < GW / 2 ? left[y] : right[y]) : (y < GH / 2 ? top[x] : bottom[x]);
         col = boost(col);
         const j = (y * GW + x) * 3, o = (y * GW + x) * 4;
-        for (let c = 0; c < 3; c++) { cur[j + c] += (col[c] - cur[j + c]) * 0.045; // calm: ~2 s to follow a cut, like YouTube's ambient mode out.data[o + c] = cur[j + c]; }
+        // calm: ~2 s to follow a cut, like YouTube's ambient mode
+        for (let c = 0; c < 3; c++) { cur[j + c] += (col[c] - cur[j + c]) * 0.045; out.data[o + c] = cur[j + c]; }
         out.data[o + 3] = 255;
       }
     }
@@ -320,7 +346,7 @@
     if (v !== video || h !== host) {
       detach();
       addStyle();
-      host = h; video = v; cur.fill(0); lastT = -1;
+      host = h; video = v; cur.fill(0); lastT = -1; useCapture = false;
       if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
       host.classList.add('av-host');
       video.classList.add('av-video');
