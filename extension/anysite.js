@@ -182,7 +182,10 @@
     const p = host.getBoundingClientRect(), v = video.getBoundingClientRect();
     if (!v.width || !v.height) return;
     const c = picRect(video, v); setClip(video, v, c);
-    const w = c.w * SPREAD, h = c.h * SPREAD;
+    // at least out to the player's edges, so wide (21:9) screens get no black sides
+    const cx = c.x + c.w / 2, cy = c.y + c.h / 2, R = 1.35;
+    const w = Math.max(c.w * SPREAD, 2 * Math.max(cx - p.left, p.right - cx) * R);
+    const h = Math.max(c.h * SPREAD, 2 * Math.max(cy - p.top, p.bottom - cy) * R);
     const ox = p.left + host.clientLeft - host.scrollLeft, oy = p.top + host.clientTop - host.scrollTop;
     glow.style.width = w + 'px'; glow.style.height = h + 'px';
     glow.style.transform = `translate(${c.x - ox + c.w / 2 - w / 2}px, ${c.y - oy + c.h / 2 - h / 2}px)`;
